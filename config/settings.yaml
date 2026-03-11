@@ -1,0 +1,77 @@
+# 电商 Agent 配置文件
+
+# ========== 采集配置 ==========
+scraper:
+  # 采集商品数量
+  products_limit: 10
+  
+  # 目标平台（1688 是主要货源）
+  platforms:
+    - 1688
+  
+  # 选品关键词（用于 1688 搜索）
+  keywords:
+    - 跨境专供
+    - 亚马逊爆款
+    - TikTok 同款
+    - 抖音网红
+    - 一件代发
+    - 家居好物
+    - 创意小商品
+  
+  # 筛选条件
+  filters:
+    min_price: 5      # 最低供货价（人民币）
+    max_price: 50     # 最高供货价（人民币）
+    min_sales: 100    # 最低销量
+
+# ========== 供应商配置 ==========
+supplier:
+  # 货源平台
+  platforms:
+    - 1688
+    - yiwugo
+  
+  # 利润要求
+  min_profit_margin: 0.3  # 最低利润率 30%
+  max_price_ratio: 0.4    # 进货价不超过售价的 40%
+
+# ========== 图片配置 ==========
+media:
+  # 下载图片数量（每个商品）
+  images_per_product: 5
+  
+  # 图片处理
+  resize: true
+  max_width: 1200
+  max_height: 1200
+  
+  # 输出目录
+  output_dir: output/product_images
+
+# ========== TikTok 配置 ==========
+tiktok:
+  # 店铺信息
+  shop_name: ""
+  
+  # 默认设置
+  default_shipping_days: 7
+  default_stock: 100
+  
+  # 标签（自动添加）
+  default_tags:
+    - trending
+    - hotdeal
+    - fyp
+
+# ========== 浏览器配置 ==========
+browser:
+  # 使用 OpenClaw browser 工具
+  provider: openclaw
+  
+  # 请求延迟（秒）
+  request_delay: 2
+  
+  # 是否使用代理
+  use_proxy: false
+  proxy_url: ""
