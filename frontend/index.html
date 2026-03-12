@@ -590,19 +590,20 @@
             const collectionTasks = document.getElementById('collectionTasks');
             
             if (tab === 'collect') {
-                // 商品采集：显示采集面板、任务列表，隐藏商品列表和操作
+                // 商品采集：显示采集面板、任务列表，隐藏商品列表和利润分析
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
                 productActions.style.display = 'none';
                 collectionTasks.style.display = 'block';
                 loadCollectionTasks();  // 加载任务列表
             } else {
-                // 商品管理：显示商品列表和操作，隐藏任务列表
+                // 商品管理：显示商品列表和利润分析，隐藏采集面板和任务列表
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
                 productActions.style.display = 'block';
                 collectionTasks.style.display = 'none';
                 loadProducts();  // 刷新商品列表
+                loadLatestResult();  // 加载最近分析结果
             }
         }
 
