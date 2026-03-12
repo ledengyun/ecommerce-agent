@@ -84,6 +84,109 @@
             .main-content { grid-template-columns: 1fr; }
         }
         
+        /* 采集功能样式 */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .platform-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .platform-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .platform-card.selected {
+            border-color: #667eea;
+            background: #f5f3ff;
+        }
+        
+        .platform-card h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .platform-card p {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .platform-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .badge-free { background: #dcfce7; color: #166534; }
+        .badge-api { background: #dbeafe; color: #1e40af; }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .collection-status {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
         .panel {
             background: white;
             border-radius: 12px;
@@ -317,16 +420,72 @@
 
         <!-- 主内容区 -->
         <div class="main-content">
-            <!-- 左侧：商品列表 -->
+            <!-- 左侧：功能面板 -->
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">商品列表</div>
+                <!-- 主导航标签 -->
+                <div class="tabs" style="margin-bottom: 20px;">
+                    <button class="tab active" onclick="switchMainTab('collect')">📊 数据采集</button>
+                    <button class="tab" onclick="switchMainTab('products')">📦 商品管理</button>
                 </div>
                 
-                <div class="tabs">
-                    <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
-                    <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
+                <!-- 数据采集面板 -->
+                <div id="collectPanel" style="display: block;">
+                    <div class="panel-header" style="margin-bottom: 16px;">
+                        <div class="panel-title">选择采集平台</div>
+                    </div>
+                    
+                    <div class="platform-grid">
+                        <div class="platform-card" onclick="togglePlatform('1688', this)">
+                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
+                            <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
+                        </div>
+                        
+                        <div class="platform-card" onclick="togglePlatform('temu', this)">
+                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
+                            <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
+                        </div>
+                        
+                        <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
+                            <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
+                            <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectKeyword">搜索关键词</label>
+                        <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectLimit">每个平台采集数量</label>
+                        <select id="collectLimit">
+                            <option value="10">10 个商品</option>
+                            <option value="20" selected>20 个商品</option>
+                            <option value="50">50 个商品</option>
+                            <option value="100">100 个商品</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
+                        🚀 开始采集
+                    </button>
+                    
+                    <div id="collectStatus" class="collection-status" style="display: none;">
+                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
+                        <div id="collectProgressItems"></div>
+                    </div>
                 </div>
+                
+                <!-- 商品列表面板 -->
+                <div id="productsPanel" style="display: none;">
+                    <div class="panel-header" style="margin-bottom: 16px;">
+                        <div class="panel-title">商品列表</div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
+                        <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
+                    </div>
                 
                 <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
                     <label style="display: flex; align-items: center; cursor: pointer;">
@@ -377,11 +536,13 @@
     </div>
 
     <script>
-        let currentTab = 'analyzed';  // 默认显示已分析
+        let currentMainTab = 'collect';  // 默认显示采集面板
+        let currentTab = 'analyzed';  // 商品列表默认显示已分析
         let unanalyzedProducts = [];
         let analyzedProducts = [];
         let selectedProducts = new Set();
         let currentTaskId = null;
+        let selectedPlatforms = new Set();
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
@@ -400,6 +561,114 @@
                 if (currentTaskId) pollTaskStatus();
             }, 5000);
         });
+
+        // 切换主标签（采集/商品）
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            
+            // 更新标签样式
+            document.querySelectorAll('.tabs:first-of-type .tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 切换面板显示
+            const collectPanel = document.getElementById('collectPanel');
+            const productsPanel = document.getElementById('productsPanel');
+            
+            if (tab === 'collect') {
+                collectPanel.style.display = 'block';
+                productsPanel.style.display = 'none';
+            } else {
+                collectPanel.style.display = 'none';
+                productsPanel.style.display = 'block';
+                loadProducts();  // 刷新商品列表
+            }
+        }
+
+        // 选择/取消选择平台
+        function togglePlatform(platform, card) {
+            if (selectedPlatforms.has(platform)) {
+                selectedPlatforms.delete(platform);
+                card.classList.remove('selected');
+            } else {
+                selectedPlatforms.add(platform);
+                card.classList.add('selected');
+            }
+        }
+
+        // 开始采集
+        async function startCollection() {
+            const keyword = document.getElementById('collectKeyword').value;
+            const limit = parseInt(document.getElementById('collectLimit').value);
+            const btn = document.getElementById('collectBtn');
+            const statusDiv = document.getElementById('collectStatus');
+            const progressDiv = document.getElementById('collectProgressItems');
+            
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            
+            if (selectedPlatforms.size === 0) {
+                alert('请至少选择一个采集平台');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '采集中...';
+            statusDiv.style.display = 'block';
+            
+            const platforms = Array.from(selectedPlatforms);
+            progressDiv.innerHTML = platforms.map(p => `
+                <div class="status-item">
+                    <span>${p.toUpperCase()}</span>
+                    <span id="status-${p}">⏳ 等待中...</span>
+                </div>
+            `).join('');
+            
+            try {
+                // 调用采集 API（需要后端支持）
+                const response = await fetch('/api/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        keyword: keyword,
+                        platforms: platforms,
+                        limit: limit
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('采集失败');
+                }
+                
+                const result = await response.json();
+                
+                // 更新状态
+                platforms.forEach(p => {
+                    const statusEl = document.getElementById(`status-${p}`);
+                    const count = result[p]?.length || 0;
+                    statusEl.textContent = `✅ 完成 (${count}个)`;
+                });
+                
+                btn.disabled = false;
+                btn.textContent = '🚀 开始采集';
+                
+                alert(`采集完成！共采集 ${Object.values(result).reduce((sum, arr) => sum + arr.length, 0)} 个商品`);
+                
+                // 刷新商品列表
+                if (currentMainTab === 'products') {
+                    loadProducts();
+                }
+                
+            } catch (e) {
+                console.error('采集失败:', e);
+                btn.disabled = false;
+                btn.textContent = '🚀 开始采集';
+                alert('采集失败：' + e.message);
+            }
+        }
 
         // 加载统计
         async function loadStats() {

@@ -387,6 +387,35 @@ async def get_task_status(task_id: str):
         "result": task["result"]
     }
 
+@app.post("/api/collect")
+async def collect_products(request: AnalysisRequest):
+    """采集多平台商品数据"""
+    try:
+        from src.data_collector import DataCollector
+        
+        keyword = request.keyword or 'home goods'
+        platforms = ['1688', 'temu']  # 默认采集这两个平台
+        limit = 20
+        
+        collector = DataCollector()
+        results = collector.collect(
+            keyword=keyword,
+            platforms=platforms,
+            limit_per_platform=limit,
+            output_file='data/collected_products.json'
+        )
+        
+        return {
+            'success': True,
+            'keyword': keyword,
+            'platforms': platforms,
+            **results
+        }
+        
+    except Exception as e:
+        logger.error(f"采集失败：{e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/analysis/latest")
 async def get_latest_analysis():
     """获取最近一次分析结果"""
