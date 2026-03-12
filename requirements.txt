@@ -8,11 +8,16 @@ aiohttp>=3.8.0
 # 图片处理
 Pillow>=9.0.0
 
-# 浏览器自动化（可选，OpenClaw 已内置 browser 工具）
-# playwright>=1.40.0
-
 # 数据处理
 pandas>=1.5.0
 
 # 日志
 python-json-logger>=2.0.0
+
+# Web 后端
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+
+# 跨域支持
+python-cors>=1.0.0
