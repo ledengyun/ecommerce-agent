@@ -553,10 +553,15 @@
             loadProducts();
             loadLatestResult();
             
-            // 初始化时隐藏全选框（因为默认是已分析标签）
+            // 初始化时隐藏全选框和右侧操作区（因为默认是采集标签）
             const selectAllContainer = document.getElementById('selectAllContainer');
             if (selectAllContainer) {
                 selectAllContainer.style.display = 'none';
+            }
+            
+            const productActions = document.getElementById('productActions');
+            if (productActions) {
+                productActions.style.display = 'none';
             }
             
             setInterval(() => {
