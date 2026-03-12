@@ -84,6 +84,9 @@ def get_db_connection():
 class AnalysisRequest(BaseModel):
     product_ids: Optional[List[int]] = None  # 用户选择的商品 ID，为空则自动选择
     min_profit_margin: Optional[float] = 0.3
+    keyword: Optional[str] = None  # 采集关键词
+    platforms: Optional[List[str]] = None  # 采集平台
+    limit: Optional[int] = 20  # 采集数量
 
 class AnalysisResult(BaseModel):
     task_id: str
@@ -391,6 +394,14 @@ async def get_task_status(task_id: str):
 async def collect_products(request: AnalysisRequest):
     """采集多平台商品数据"""
     try:
+        import sys
+        from pathlib import Path
+        
+        # 添加项目根目录到 Python 路径
+        project_root = Path(__file__).parent.parent
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+        
         from src.data_collector import DataCollector
         
         keyword = request.keyword or 'home goods'
@@ -409,11 +420,13 @@ async def collect_products(request: AnalysisRequest):
             'success': True,
             'keyword': keyword,
             'platforms': platforms,
-            **results
+            'results': results
         }
         
     except Exception as e:
         logger.error(f"采集失败：{e}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/analysis/latest")
