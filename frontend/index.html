@@ -11,8 +11,13 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            margin: 0;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto;
+            min-height: calc(100vh - 40px);
+        }
         
         header {
             background: white;
@@ -481,9 +486,9 @@
                         
                         <!-- 右侧：采集任务列表 -->
                         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;">
-                            <div style="color: #1f2937; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
+                            <div style="color: #000000; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
                             <div id="taskList" style="max-height: 400px; overflow-y: auto;">
-                                <div style="color: #6b7280; font-size: 13px;">暂无采集任务</div>
+                                <div style="color: #000000; font-size: 13px;">暂无采集任务</div>
                             </div>
                         </div>
                     </div>
@@ -625,24 +630,24 @@
                                       task.status === 'failed' ? '❌' : '⏳';
                     
                     return `
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <strong style="font-size: 14px; color: white;">${task.task_name}</strong>
+                                <strong style="font-size: 14px; color: #000000;">${task.task_name}</strong>
                                 <span style="font-size: 12px;">${statusIcon}</span>
                             </div>
-                            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">
+                            <div style="font-size: 12px; color: #000000; margin-bottom: 8px;">
                                 关键词：${task.keyword || 'N/A'}
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 11px; color: rgba(255,255,255,0.6);">
+                                <span style="font-size: 11px; color: #000000;">
                                     ${task.status === 'completed' ? `完成：${task.total_products}个` : ''}
                                 </span>
                                 ${task.status === 'running' ? `
                                     <div style="flex: 1; margin: 0 12px;">
-                                        <div style="height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
-                                            <div style="height: 100%; background: white; width: ${task.progress}%"></div>
+                                        <div style="height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+                                            <div style="height: 100%; background: #667eea; width: ${task.progress}%"></div>
                                         </div>
-                                        <span style="font-size: 10px; color: rgba(255,255,255,0.6);">${task.progress}%</span>
+                                        <span style="font-size: 10px; color: #000000;">${task.progress}%</span>
                                     </div>
                                 ` : ''}
                             </div>
