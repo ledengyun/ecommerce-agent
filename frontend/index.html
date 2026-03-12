@@ -420,37 +420,16 @@
 
         <!-- 主内容区 -->
         <div class="main-content">
-            <!-- 左侧：商品列表/采集结果 -->
+            <!-- 左侧：商品列表 -->
             <div class="panel">
-                <!-- 主导航标签 -->
-                <div class="tabs" style="margin-bottom: 20px;">
-                    <button class="tab active" onclick="switchMainTab('collect')">📊 数据采集</button>
-                    <button class="tab" onclick="switchMainTab('products')">📦 商品管理</button>
+                <div class="panel-header" style="margin-bottom: 16px;">
+                    <div class="panel-title">商品列表</div>
                 </div>
                 
-                <!-- 数据采集结果面板 -->
-                <div id="collectPanel" style="display: block;">
-                    <div class="panel-header" style="margin-bottom: 16px;">
-                        <div class="panel-title">采集结果</div>
-                    </div>
-                    
-                    <div id="collectResults" style="padding: 20px; text-align: center; color: #6b7280;">
-                        <p style="font-size: 48px; margin-bottom: 16px;">📊</p>
-                        <p>暂无采集数据</p>
-                        <p style="font-size: 13px; margin-top: 8px;">在右侧选择平台并开始采集</p>
-                    </div>
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
+                    <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
                 </div>
-                
-                <!-- 商品列表面板 -->
-                <div id="productsPanel" style="display: none;">
-                    <div class="panel-header" style="margin-bottom: 16px;">
-                        <div class="panel-title">商品列表</div>
-                    </div>
-                    
-                    <div class="tabs">
-                        <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
-                        <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
-                    </div>
                 
                 <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
                     <label style="display: flex; align-items: center; cursor: pointer;">
@@ -464,78 +443,36 @@
                 </div>
             </div>
 
-            <!-- 右侧：采集操作面板 -->
+            <!-- 右侧：操作面板 -->
             <div class="panel">
-                <!-- 采集操作 -->
-                <div id="collectActions">
-                    <div class="panel-header" style="margin-bottom: 16px;">
-                        <div class="panel-title">采集配置</div>
-                    </div>
-                    
-                    <div class="platform-grid" style="grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px;">
-                        <div class="platform-card" onclick="togglePlatform('1688', this)">
-                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
-                            <p style="font-size: 12px;">人工辅助，稳定可靠</p>
-                        </div>
-                        
-                        <div class="platform-card" onclick="togglePlatform('temu', this)">
-                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
-                            <p style="font-size: 12px;">需要 API 密钥</p>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectKeyword">搜索关键词</label>
-                        <input type="text" id="collectKeyword" placeholder="例如：home goods" value="home goods">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectLimit">采集数量</label>
-                        <select id="collectLimit">
-                            <option value="10">10 个</option>
-                            <option value="20" selected>20 个</option>
-                            <option value="50">50 个</option>
-                            <option value="100">100 个</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%; margin-bottom: 16px;">
-                        🚀 开始采集
-                    </button>
-                    
-                    <div id="collectStatus" class="collection-status" style="display: none;">
-                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
-                        <div id="collectProgressItems"></div>
-                    </div>
+                <div class="panel-header">
+                    <div class="panel-title">操作</div>
                 </div>
                 
-                <!-- 分析操作 -->
-                <div id="analysisActions" style="display: none; margin-top: 24px; border-top: 2px solid #e5e7eb; padding-top: 24px;">
-                    <div class="action-panel">
-                        <div class="action-item">
-                            <h4>📊 利润分析</h4>
-                            <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
-                            <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
-                                开始分析
-                            </button>
-                            <div class="progress-bar" id="progressBar" style="display: none;">
-                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                            </div>
-                            <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                <div class="action-panel">
+                    <div class="action-item">
+                        <h4>📊 利润分析</h4>
+                        <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
+                        <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
+                            开始分析
+                        </button>
+                        <div class="progress-bar" id="progressBar" style="display: none;">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                         </div>
-                        
-                        <div class="action-item">
-                            <h4>📋 最近分析结果</h4>
-                            <div id="latestResult" class="result-box" style="display: none;">
-                                <h4>✅ 分析完成</h4>
-                                <div class="result-stats">
-                                    <div>分析：<span id="resultTotal">0</span>个</div>
-                                    <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                    <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
-                                </div>
+                        <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                    </div>
+                    
+                    <div class="action-item">
+                        <h4>📋 最近分析结果</h4>
+                        <div id="latestResult" class="result-box" style="display: none;">
+                            <h4>✅ 分析完成</h4>
+                            <div class="result-stats">
+                                <div>分析：<span id="resultTotal">0</span>个</div>
+                                <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
                             </div>
-                            <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
                         </div>
+                        <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
                     </div>
                 </div>
             </div>
@@ -543,13 +480,11 @@
     </div>
 
     <script>
-        let currentMainTab = 'collect';  // 默认显示采集面板
-        let currentTab = 'analyzed';  // 商品列表默认显示已分析
+        let currentTab = 'analyzed';  // 默认显示已分析
         let unanalyzedProducts = [];
         let analyzedProducts = [];
         let selectedProducts = new Set();
         let currentTaskId = null;
-        let selectedPlatforms = new Set();
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
@@ -568,128 +503,6 @@
                 if (currentTaskId) pollTaskStatus();
             }, 5000);
         });
-
-        // 切换主标签（采集/商品）
-        function switchMainTab(tab) {
-            currentMainTab = tab;
-            
-            // 更新标签样式
-            document.querySelectorAll('.tabs:first-of-type .tab').forEach(t => {
-                t.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // 切换面板显示
-            const collectPanel = document.getElementById('collectPanel');
-            const productsPanel = document.getElementById('productsPanel');
-            const collectActions = document.getElementById('collectActions');
-            const analysisActions = document.getElementById('analysisActions');
-            
-            if (tab === 'collect') {
-                collectPanel.style.display = 'block';
-                productsPanel.style.display = 'none';
-                collectActions.style.display = 'block';
-                analysisActions.style.display = 'none';
-            } else {
-                collectPanel.style.display = 'none';
-                productsPanel.style.display = 'block';
-                collectActions.style.display = 'none';
-                analysisActions.style.display = 'block';
-                loadProducts();  // 刷新商品列表
-            }
-        }
-
-        // 选择/取消选择平台
-        function togglePlatform(platform, card) {
-            if (selectedPlatforms.has(platform)) {
-                selectedPlatforms.delete(platform);
-                card.classList.remove('selected');
-            } else {
-                selectedPlatforms.add(platform);
-                card.classList.add('selected');
-            }
-        }
-
-        // 开始采集
-        async function startCollection() {
-            const keyword = document.getElementById('collectKeyword').value;
-            const limit = parseInt(document.getElementById('collectLimit').value);
-            const btn = document.getElementById('collectBtn');
-            const statusDiv = document.getElementById('collectStatus');
-            const progressDiv = document.getElementById('collectProgressItems');
-            
-            if (!keyword) {
-                alert('请输入搜索关键词');
-                return;
-            }
-            
-            if (selectedPlatforms.size === 0) {
-                alert('请至少选择一个采集平台');
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.textContent = '采集中...';
-            statusDiv.style.display = 'block';
-            
-            const platforms = Array.from(selectedPlatforms);
-            progressDiv.innerHTML = platforms.map(p => `
-                <div class="status-item">
-                    <span>${p.toUpperCase()}</span>
-                    <span id="status-${p}">⏳ 采集中...</span>
-                </div>
-            `).join('');
-            
-            try {
-                const response = await fetch('/api/collect', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        keyword: keyword,
-                        platforms: platforms,
-                        limit: limit
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || '采集失败');
-                }
-                
-                const result = await response.json();
-                
-                // 更新状态
-                if (result.results) {
-                    platforms.forEach(p => {
-                        const statusEl = document.getElementById(`status-${p}`);
-                        const count = result.results[p]?.length || 0;
-                        
-                        if (p === '1688') {
-                            statusEl.innerHTML = `ℹ️ 请使用脚本采集 <a href="#" onclick="alert('1. 访问 1688.com\\n2. 搜索：${keyword}\\n3. 按 F12\\n4. 运行 scripts/extract_1688_auto.js\\n5. 保存 JSON 文件')" style="color: #667eea; text-decoration: underline;">📝 查看说明</a>`;
-                        } else if (count > 0) {
-                            statusEl.textContent = `✅ 完成 (${count}个)`;
-                        } else {
-                            statusEl.textContent = `⚠️ 无结果 (需 API 密钥)`;
-                        }
-                    });
-                    
-                    const total = Object.values(result.results || {}).reduce((sum, arr) => sum + arr.length, 0);
-                    
-                    setTimeout(() => {
-                        alert(`采集完成！\n\n总计：${total} 个商品\n关键词：${keyword}\n\n1688 商品请使用脚本采集，其他平台需要配置 API 密钥。`);
-                    }, 500);
-                }
-                
-                btn.disabled = false;
-                btn.textContent = '🚀 开始采集';
-                
-            } catch (e) {
-                console.error('采集失败:', e);
-                btn.disabled = false;
-                btn.textContent = '🚀 开始采集';
-                alert('采集失败：' + e.message + '\n\n提示：Temu/Amazon 需要配置 API 密钥，1688 请使用人工辅助脚本。');
-            }
-        }
 
         // 加载统计
         async function loadStats() {
