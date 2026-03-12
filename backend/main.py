@@ -390,9 +390,185 @@ async def get_task_status(task_id: str):
         "result": task["result"]
     }
 
+# 采集任务存储
+collection_tasks: Dict[str, Dict] = {}
+
 @app.post("/api/collect")
-async def collect_products(request: AnalysisRequest):
-    """采集多平台商品数据"""
+async def create_collection_task(request: AnalysisRequest):
+    """创建采集任务（异步）"""
+    import uuid
+    import random
+    import string
+    
+    try:
+        # 生成随机任务名称（10 位字符串）
+        task_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        task_id = str(uuid.uuid4())
+        
+        keyword = request.keyword or 'home goods'
+        platforms = request.platforms or ['1688', 'temu']
+        limit = request.limit or 20
+        
+        # 保存到数据库
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO collection_tasks 
+            (task_id, task_name, keyword, platforms, status, progress)
+            VALUES (%s, %s, %s, %s, 'pending', 0)
+        """, (task_id, task_name, keyword, json.dumps(platforms)))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # 创建任务记录
+        collection_tasks[task_id] = {
+            'task_id': task_id,
+            'task_name': task_name,
+            'keyword': keyword,
+            'platforms': platforms,
+            'limit': limit,
+            'status': 'pending',
+            'progress': 0,
+            'total_products': 0
+        }
+        
+        # 后台执行采集
+        background_tasks.add_task(run_collection_task, task_id)
+        
+        return {
+            'success': True,
+            'task_id': task_id,
+            'task_name': task_name,
+            'message': '采集任务已创建'
+        }
+        
+    except Exception as e:
+        logger.error(f"创建任务失败：{e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def run_collection_task(task_id: str):
+    """后台执行采集任务"""
+    try:
+        import sys
+        from pathlib import Path
+        
+        # 更新状态为运行中
+        collection_tasks[task_id]['status'] = 'running'
+        collection_tasks[task_id]['progress'] = 10
+        
+        # 更新数据库
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE collection_tasks SET status='running', progress=10
+            WHERE task_id = %s
+        """, (task_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # 添加项目根目录到 Python 路径
+        project_root = Path(__file__).parent.parent
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+        
+        from src.data_collector import DataCollector
+        
+        task = collection_tasks[task_id]
+        keyword = task['keyword']
+        platforms = task['platforms']
+        limit = task['limit']
+        
+        # 执行采集
+        collection_tasks[task_id]['progress'] = 30
+        
+        collector = DataCollector()
+        results = collector.collect(
+            keyword=keyword,
+            platforms=platforms,
+            limit_per_platform=limit,
+            output_file=f'data/collected_{task_id}.json'
+        )
+        
+        # 计算总数
+        total = sum(len(p) for p in results.values())
+        
+        # 更新状态
+        collection_tasks[task_id]['progress'] = 100
+        collection_tasks[task_id]['status'] = 'completed'
+        collection_tasks[task_id]['total_products'] = total
+        
+        # 更新数据库
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE collection_tasks 
+            SET status='completed', progress=100, total_products=%s, completed_at=NOW()
+            WHERE task_id = %s
+        """, (total, task_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        logger.info(f"采集任务完成：{task_id}, 总计 {total} 个商品")
+        
+    except Exception as e:
+        logger.error(f"采集任务失败：{task_id}, 错误：{e}")
+        collection_tasks[task_id]['status'] = 'failed'
+        collection_tasks[task_id]['error_message'] = str(e)
+        
+        # 更新数据库
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE collection_tasks 
+            SET status='failed', error_message=%s
+            WHERE task_id = %s
+        """, (str(e), task_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+@app.get("/api/collection/tasks")
+async def get_collection_tasks():
+    """获取采集任务列表"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT task_id, task_name, keyword, status, progress, 
+                   total_products, created_at, completed_at
+            FROM collection_tasks
+            ORDER BY created_at DESC
+            LIMIT 20
+        """)
+        results = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        tasks = []
+        for row in results:
+            tasks.append({
+                'task_id': row['task_id'],
+                'task_name': row['task_name'],
+                'keyword': row['keyword'],
+                'status': row['status'],
+                'progress': row['progress'],
+                'total_products': row['total_products'],
+                'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                'completed_at': row['completed_at'].isoformat() if row['completed_at'] else None
+            })
+        
+        return {'tasks': tasks}
+        
+    except Exception as e:
+        logger.error(f"获取任务列表失败：{e}")
+        return {'tasks': []}
+
+@app.get("/api/collect")
+async def collect_products_sync(request: AnalysisRequest):
+    """采集多平台商品数据（同步，保留兼容）"""
     try:
         import sys
         from pathlib import Path
