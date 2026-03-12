@@ -1,0 +1,35 @@
+# Temu 第三方 API 配置
+
+# Rainforest API (推荐)
+# 注册地址：https://www.rainforestapi.com
+# 免费额度：100 次/月
+RAINFOREST_API_KEY=
+
+# ScraperAPI
+# 注册地址：https://www.scraperapi.com
+# 免费额度：1000 次/月
+SCRAPERAPI_API_KEY=
+
+# Oxylabs
+# 注册地址：https://oxylabs.io
+# 需要付费，提供试用
+OXYLABS_API_KEY=
+
+# Bright Data
+# 注册地址：https://brightdata.com
+# 需要付费，提供试用
+BRIGHTDATA_API_KEY=
+
+# 默认使用的 API 服务
+DEFAULT_API_SERVICE=rainforest
+
+# Temu 采集配置
+TEMU_DEFAULT_KEYWORDS:
+  - home goods
+  - kitchen gadgets
+  - electronics
+  - fashion accessories
+  - beauty products
+
+TEMU_MAX_PRODUCTS: 50
+TEMU_TIMEOUT: 30
