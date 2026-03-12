@@ -76,12 +76,21 @@
         
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 24px;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
         }
         
         @media (max-width: 1024px) {
             .main-content { grid-template-columns: 1fr; }
+        }
+        
+        /* 确保左侧面板内容横向铺满 */
+        .main-content > .panel:first-child {
+            min-width: 0;
+        }
+        
+        .main-content > .panel:first-child > div {
+            width: 100%;
         }
         
         /* 采集功能样式 */
@@ -430,14 +439,11 @@
                 
                 <!-- 商品采集面板 -->
                 <div id="collectPanel" style="display: block;">
-                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
-                        <!-- 左侧：采集配置 -->
-                        <div style="min-width: 0;">
-                            <div class="panel-header" style="margin-bottom: 16px;">
-                                <div class="panel-title">选择采集平台</div>
-                            </div>
-                            
-                            <div class="platform-grid">
+                    <div class="panel-header" style="margin-bottom: 16px;">
+                        <div class="panel-title">选择采集平台</div>
+                    </div>
+                    
+                    <div class="platform-grid">
                                 <div class="platform-card" onclick="togglePlatform('1688', this)">
                                     <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
                                     <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
@@ -469,80 +475,73 @@
                                 </select>
                             </div>
                             
-                            <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
-                                🚀 开始采集
-                            </button>
-                            
-                            <div id="collectStatus" class="collection-status" style="display: none;">
-                                <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
-                                <div id="collectProgressItems"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- 右侧：采集任务列表 -->
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 16px;">
-                            <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
-                            <div id="taskList" style="max-height: 400px; overflow-y: auto;">
-                                <div style="color: rgba(255,255,255,0.8); font-size: 13px;">暂无采集任务</div>
-                            </div>
+                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
+                        🚀 开始采集
+                    </button>
+                    
+                    <div id="collectStatus" class="collection-status" style="display: none;">
+                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
+                        <div id="collectProgressItems"></div>
+                    </div>
+                    
+                    <!-- 采集任务列表 -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 16px; margin-top: 24px;">
+                        <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
+                        <div id="taskList" style="max-height: 400px; overflow-y: auto;">
+                            <div style="color: rgba(255,255,255,0.8); font-size: 13px;">暂无采集任务</div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 商品列表面板 -->
                 <div id="productsPanel" style="display: none;">
-                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
-                        <!-- 左侧：商品列表 -->
-                        <div style="min-width: 0;">
-                            <div class="panel-header" style="margin-bottom: 16px;">
-                                <div class="panel-title">商品列表</div>
+                    <div class="panel-header" style="margin-bottom: 16px;">
+                        <div class="panel-title">商品列表</div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
+                        <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
+                    </div>
+                
+                    <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <span id="selectAllText">全选（用于批量分析）</span>
+                        </label>
+                    </div>
+                    
+                    <div class="product-list" id="productList" style="overflow-x: auto;">
+                        <div class="empty-state">加载中...</div>
+                    </div>
+                    
+                    <!-- 利润分析和分析结果 -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin-top: 24px;">
+                        <!-- 利润分析 -->
+                        <div style="margin-bottom: 24px;">
+                            <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📊 利润分析</div>
+                            <p id="analyzeHint" style="font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
+                            <button class="btn" onclick="startAnalysis()" id="analyzeBtn" style="width: 100%; background: white; color: #667eea; font-weight: 600;">
+                                开始分析
+                            </button>
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 4px; margin-top: 12px; overflow: hidden; display: none;" id="progressBar">
+                                <div id="progressFill" style="background: white; height: 100%; width: 0%"></div>
                             </div>
-                            
-                            <div class="tabs">
-                                <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
-                                <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
-                            </div>
-                        
-                            <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                                    <span id="selectAllText">全选（用于批量分析）</span>
-                                </label>
-                            </div>
-                            
-                            <div class="product-list" id="productList" style="overflow-x: auto;">
-                                <div class="empty-state">加载中...</div>
-                            </div>
+                            <p id="progressText" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 8px;"></p>
                         </div>
                         
-                        <!-- 右侧：利润分析和分析结果 -->
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px;">
-                            <!-- 利润分析 -->
-                            <div style="margin-bottom: 24px;">
-                                <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📊 利润分析</div>
-                                <p id="analyzeHint" style="font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
-                                <button class="btn" onclick="startAnalysis()" id="analyzeBtn" style="width: 100%; background: white; color: #667eea; font-weight: 600;">
-                                    开始分析
-                                </button>
-                                <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 4px; margin-top: 12px; overflow: hidden; display: none;" id="progressBar">
-                                    <div id="progressFill" style="background: white; height: 100%; width: 0%"></div>
+                        <!-- 最近分析结果 -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+                            <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 最近分析结果</div>
+                            <div id="latestResult" style="display: none; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px;">
+                                <div style="color: white; font-size: 14px; margin-bottom: 8px;">✅ 分析完成</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.9);">
+                                    <div>分析：<span id="resultTotal">0</span>个</div>
+                                    <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                    <div style="grid-column: 1 / -1;">平均利润：<span id="resultAvgMargin">0</span>%</div>
                                 </div>
-                                <p id="progressText" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 8px;"></p>
                             </div>
-                            
-                            <!-- 最近分析结果 -->
-                            <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
-                                <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 最近分析结果</div>
-                                <div id="latestResult" style="display: none; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px;">
-                                    <div style="color: white; font-size: 14px; margin-bottom: 8px;">✅ 分析完成</div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.9);">
-                                        <div>分析：<span id="resultTotal">0</span>个</div>
-                                        <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                        <div style="grid-column: 1 / -1;">平均利润：<span id="resultAvgMargin">0</span>%</div>
-                                    </div>
-                                </div>
-                                <p id="noResultText" style="font-size: 13px; color: rgba(255,255,255,0.8);">暂无分析结果</p>
-                            </div>
+                            <p id="noResultText" style="font-size: 13px; color: rgba(255,255,255,0.8);">暂无分析结果</p>
                         </div>
                     </div>
                 </div>
