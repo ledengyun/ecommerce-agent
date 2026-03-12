@@ -501,34 +501,37 @@
 
             <!-- 右侧：操作面板 -->
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">操作</div>
-                </div>
-                
-                <div class="action-panel">
-                    <div class="action-item">
-                        <h4>📊 利润分析</h4>
-                        <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
-                        <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
-                            开始分析
-                        </button>
-                        <div class="progress-bar" id="progressBar" style="display: none;">
-                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
-                        <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                <!-- 商品管理下的操作 -->
+                <div id="productActions">
+                    <div class="panel-header">
+                        <div class="panel-title">操作</div>
                     </div>
                     
-                    <div class="action-item">
-                        <h4>📋 最近分析结果</h4>
-                        <div id="latestResult" class="result-box" style="display: none;">
-                            <h4>✅ 分析完成</h4>
-                            <div class="result-stats">
-                                <div>分析：<span id="resultTotal">0</span>个</div>
-                                <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
+                    <div class="action-panel">
+                        <div class="action-item">
+                            <h4>📊 利润分析</h4>
+                            <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
+                            <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
+                                开始分析
+                            </button>
+                            <div class="progress-bar" id="progressBar" style="display: none;">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                             </div>
+                            <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
                         </div>
-                        <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
+                        
+                        <div class="action-item">
+                            <h4>📋 最近分析结果</h4>
+                            <div id="latestResult" class="result-box" style="display: none;">
+                                <h4>✅ 分析完成</h4>
+                                <div class="result-stats">
+                                    <div>分析：<span id="resultTotal">0</span>个</div>
+                                    <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                    <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
+                                </div>
+                            </div>
+                            <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -572,18 +575,23 @@
             });
             event.target.classList.add('active');
             
-            // 切换面板显示
+            // 切换左侧面板显示
             const collectPanel = document.getElementById('collectPanel');
             const productsPanel = document.getElementById('productsPanel');
             
+            // 切换右侧操作区显示
+            const productActions = document.getElementById('productActions');
+            
             if (tab === 'collect') {
-                // 商品采集：只显示采集面板，隐藏商品列表
+                // 商品采集：显示采集面板，隐藏商品列表和右侧操作
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
+                productActions.style.display = 'none';
             } else {
-                // 商品管理：隐藏采集面板，显示商品列表
+                // 商品管理：显示商品列表和右侧操作
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
+                productActions.style.display = 'block';
                 loadProducts();  // 刷新商品列表
             }
         }
