@@ -17,77 +17,92 @@
             max-width: 1400px; 
             margin: 0 auto;
             min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         
-        header {
+        /* 上部：统计卡片 */
+        .stats-section {
             background: white;
             border-radius: 12px;
-            padding: 24px 32px;
-            margin-bottom: 24px;
+            padding: 24px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        header h1 {
-            color: #333;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #f0fdf4;
-            border-radius: 20px;
-            color: #16a34a;
-            font-size: 14px;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #16a34a;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
         
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin-bottom: 24px;
         }
         
         .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
         }
         
         .stat-card .label { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
         .stat-card .value { font-size: 28px; font-weight: bold; color: #1f2937; }
         
-        .main-content {
+        /* 中部：主导航标签 */
+        .nav-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: #f3f4f6;
+            font-size: 15px;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tab:hover { background: #e5e7eb; }
+        .tab.active { background: #667eea; color: white; }
+        
+        /* 下部：左右分栏内容 */
+        .content-section {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 24px;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            flex: 1;
         }
         
         @media (max-width: 1024px) {
-            .main-content { grid-template-columns: 1fr; }
+            .content-section { grid-template-columns: 1fr; }
         }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .panel-title { font-size: 18px; font-weight: 600; color: #1f2937; }
         
         /* 采集功能样式 */
         .platform-grid {
@@ -101,7 +116,7 @@
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid transparent;
@@ -109,7 +124,7 @@
         
         .platform-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .platform-card.selected {
@@ -173,43 +188,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .collection-status {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 16px;
-        }
-        
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .status-item:last-child {
-            border-bottom: none;
-        }
-        
-        .panel {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .panel-title { font-size: 18px; font-weight: 600; color: #1f2937; }
-        
         .btn {
             padding: 10px 20px;
             border: none;
@@ -236,7 +214,7 @@
         }
         
         .product-list {
-            max-height: 600px;
+            max-height: 500px;
             overflow-y: auto;
         }
         
@@ -305,17 +283,12 @@
         .badge-success { background: #dcfce7; color: #166534; }
         .badge-warning { background: #fef3c7; color: #92400e; }
         
-        .action-panel { display: flex; flex-direction: column; gap: 16px; }
-        
-        .action-item {
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
         }
-        
-        .action-item h4 { font-size: 14px; color: #374151; margin-bottom: 8px; }
-        .action-item p { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
         
         .progress-bar {
             height: 6px;
@@ -339,12 +312,6 @@
             margin-top: 16px;
         }
         
-        .result-box h4 {
-            color: #166534;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
         .result-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -358,201 +325,157 @@
             padding: 40px 20px;
             color: #9ca3af;
         }
-        
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        
-        .tab {
-            padding: 8px 16px;
-            border: none;
-            background: #f3f4f6;
-            font-size: 14px;
-            color: #6b7280;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .checkbox {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🛍️ 电商选品 Agent <span style="font-size: 14px; color: #6b7280;">控制台</span></h1>
-            <div class="status">
-                <span class="status-dot"></span>
-                <span id="statusText">系统运行中</span>
-            </div>
-        </header>
-
-        <!-- 统计卡片 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="label">总商品数</div>
-                <div class="value" id="totalProducts">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">未分析</div>
-                <div class="value" id="unanalyzedCount">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">已分析</div>
-                <div class="value" id="analyzedCount">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">推荐商品</div>
-                <div class="value" id="recommendedCount">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">平均利润率</div>
-                <div class="value" id="avgProfitMargin" style="color: #16a34a;">-</div>
+        <!-- 上部：统计卡片 -->
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">总商品数</div>
+                    <div class="value" id="totalProducts">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">未分析</div>
+                    <div class="value" id="unanalyzedCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">已分析</div>
+                    <div class="value" id="analyzedCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">推荐商品</div>
+                    <div class="value" id="recommendedCount">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">平均利润率</div>
+                    <div class="value" id="avgProfitMargin" style="color: #16a34a;">-</div>
+                </div>
             </div>
         </div>
 
-        <!-- 主内容区 -->
-        <div class="main-content">
+        <!-- 中部：主导航标签 -->
+        <div class="nav-section">
+            <div class="tabs">
+                <button class="tab active" onclick="switchMainTab('collect')">📊 商品采集</button>
+                <button class="tab" onclick="switchMainTab('products')">📦 商品列表</button>
+            </div>
+        </div>
+
+        <!-- 下部：左右分栏内容 -->
+        <div class="content-section">
             <!-- 左侧：功能面板 -->
             <div class="panel">
-                <!-- 主导航标签 -->
-                <div class="tabs" style="margin-bottom: 20px;">
-                    <button class="tab active" onclick="switchMainTab('collect')">📊 商品采集</button>
-                    <button class="tab" onclick="switchMainTab('products')">📦 商品列表</button>
-                </div>
-                
                 <!-- 商品采集面板 -->
                 <div id="collectPanel" style="display: block;">
-                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
-                        <!-- 左侧：采集配置 -->
-                        <div style="min-width: 0;">
-                            <div class="panel-header" style="margin-bottom: 16px;">
-                                <div class="panel-title">选择采集平台</div>
-                            </div>
-                            
-                            <div class="platform-grid">
-                                <div class="platform-card" onclick="togglePlatform('1688', this)">
-                                    <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
-                                    <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
-                                </div>
-                                
-                                <div class="platform-card" onclick="togglePlatform('temu', this)">
-                                    <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
-                                    <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
-                                </div>
-                                
-                                <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
-                                    <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
-                                    <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
-                                </div>
-                            </div>
-                            
-                            <div class="input-group">
-                                <label for="collectKeyword">搜索关键词</label>
-                                <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
-                            </div>
-                            
-                            <div class="input-group">
-                                <label for="collectLimit">每个平台采集数量</label>
-                                <select id="collectLimit">
-                                    <option value="10">10 个商品</option>
-                                    <option value="20" selected>20 个商品</option>
-                                    <option value="50">50 个商品</option>
-                                    <option value="100">100 个商品</option>
-                                </select>
-                            </div>
-                            
-                            <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
-                                🚀 开始采集
-                            </button>
-                            
-                            <div id="collectStatus" class="collection-status" style="display: none;">
-                                <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
-                                <div id="collectProgressItems"></div>
-                            </div>
+                    <div class="panel-header">
+                        <div class="panel-title">选择采集平台</div>
+                    </div>
+                    
+                    <div class="platform-grid">
+                        <div class="platform-card" onclick="togglePlatform('1688', this)">
+                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
+                            <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
                         </div>
                         
-                        <!-- 右侧：采集任务列表 -->
-                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;">
-                            <div style="color: #000000; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
-                            <div id="taskList" style="max-height: 400px; overflow-y: auto;">
-                                <div style="color: #000000; font-size: 13px;">暂无采集任务</div>
-                            </div>
+                        <div class="platform-card" onclick="togglePlatform('temu', this)">
+                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
+                            <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
+                        </div>
+                        
+                        <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
+                            <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
+                            <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectKeyword">搜索关键词</label>
+                        <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectLimit">每个平台采集数量</label>
+                        <select id="collectLimit">
+                            <option value="10">10 个商品</option>
+                            <option value="20" selected>20 个商品</option>
+                            <option value="50">50 个商品</option>
+                            <option value="100">100 个商品</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
+                        🚀 开始采集
+                    </button>
+                    
+                    <!-- 采集任务列表 -->
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-top: 24px;">
+                        <div style="color: #000000; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
+                        <div id="taskList" style="max-height: 400px; overflow-y: auto;">
+                            <div style="color: #000000; font-size: 13px;">暂无采集任务</div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 商品列表面板 -->
                 <div id="productsPanel" style="display: none;">
-                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
-                        <!-- 左侧：商品列表 -->
-                        <div style="min-width: 0;">
-                            <div class="panel-header" style="margin-bottom: 16px;">
-                                <div class="panel-title">商品列表</div>
-                            </div>
-                            
-                            <div class="tabs">
-                                <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
-                                <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
-                            </div>
-                        
-                            <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                                    <span id="selectAllText">全选（用于批量分析）</span>
-                                </label>
-                            </div>
-                            
-                            <div class="product-list" id="productList" style="overflow-x: auto;">
-                                <div class="empty-state">加载中...</div>
-                            </div>
-                        </div>
-                        
-                        <!-- 右侧：利润分析和分析结果 -->
-                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px;">
-                            <!-- 利润分析 -->
-                            <div style="margin-bottom: 24px;">
-                                <div style="color: #1f2937; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📊 利润分析</div>
-                                <p id="analyzeHint" style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
-                                <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn" style="width: 100%;">
-                                    开始分析
-                                </button>
-                                <div class="progress-bar" id="progressBar" style="display: none; margin-top: 12px;">
-                                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                                </div>
-                                <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
-                            </div>
-                            
-                            <!-- 最近分析结果 -->
-                            <div style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                                <div style="color: #1f2937; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 最近分析结果</div>
-                                <div id="latestResult" class="result-box" style="display: none;">
-                                    <h4 style="font-size: 14px; color: #166534; margin-bottom: 8px;">✅ 分析完成</h4>
-                                    <div class="result-stats">
-                                        <div>分析：<span id="resultTotal">0</span>个</div>
-                                        <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                        <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
-                                    </div>
-                                </div>
-                                <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
-                            </div>
-                        </div>
+                    <div class="panel-header">
+                        <div class="panel-title">商品列表</div>
+                    </div>
+                    
+                    <div class="tabs" style="margin-bottom: 16px;">
+                        <button class="tab active" onclick="switchTab('analyzed')">已分析 (<span id="analyzedTabCount">0</span>)</button>
+                        <button class="tab" onclick="switchTab('unanalyzed')">未分析 (<span id="unanalyzedTabCount">0</span>)</button>
+                    </div>
+                
+                    <div style="margin-bottom: 12px; font-size: 13px; color: #6b7280;" id="selectAllContainer">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <span id="selectAllText">全选（用于批量分析）</span>
+                        </label>
+                    </div>
+                    
+                    <div class="product-list" id="productList" style="overflow-x: auto;">
+                        <div class="empty-state">加载中...</div>
                     </div>
                 </div>
+            </div>
 
-
+            <!-- 右侧：面板 -->
+            <div class="panel" id="rightPanel">
+                <!-- 商品管理下的操作 -->
+                <div id="productActions">
+                    <div class="panel-header">
+                        <div class="panel-title">操作</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <div style="color: #000000; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📊 利润分析</div>
+                        <p id="analyzeHint" style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
+                        <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn" style="width: 100%;">
+                            开始分析
+                        </button>
+                        <div class="progress-bar" id="progressBar" style="display: none; margin-top: 12px;">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                        <div style="color: #000000; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 最近分析结果</div>
+                        <div id="latestResult" class="result-box" style="display: none;">
+                            <h4 style="font-size: 14px; color: #166534; margin-bottom: 8px;">✅ 分析完成</h4>
+                            <div class="result-stats">
+                                <div>分析：<span id="resultTotal">0</span>个</div>
+                                <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
+                            </div>
+                        </div>
+                        <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -577,6 +500,12 @@
                 selectAllContainer.style.display = 'none';
             }
             
+            // 初始化时隐藏右侧操作区（因为默认是采集标签）
+            const productActions = document.getElementById('productActions');
+            if (productActions) {
+                productActions.style.display = 'none';
+            }
+            
             setInterval(() => {
                 loadStats();
                 if (currentTaskId) pollTaskStatus();
@@ -589,74 +518,34 @@
             currentMainTab = tab;
             
             // 更新标签样式
-            document.querySelectorAll('.tabs:first-of-type .tab').forEach(t => {
+            document.querySelectorAll('.nav-section .tab').forEach(t => {
                 t.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // 切换面板显示
+            // 切换左侧面板显示
             const collectPanel = document.getElementById('collectPanel');
             const productsPanel = document.getElementById('productsPanel');
             
+            // 切换右侧操作区显示
+            const productActions = document.getElementById('productActions');
+            const rightPanel = document.getElementById('rightPanel');
+            
             if (tab === 'collect') {
-                // 商品采集：显示采集面板，隐藏商品列表
+                // 商品采集：显示采集面板，隐藏商品列表和右侧操作
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
+                productActions.style.display = 'none';
+                rightPanel.style.display = 'none';
                 loadCollectionTasks();  // 加载任务列表
             } else {
-                // 商品管理：显示商品列表和利润分析，隐藏采集面板
+                // 商品管理：显示商品列表和右侧操作，隐藏采集面板
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
+                productActions.style.display = 'block';
+                rightPanel.style.display = 'block';
                 loadProducts();  // 刷新商品列表
                 loadLatestResult();  // 加载最近分析结果
-            }
-        }
-
-        // 加载采集任务列表
-        async function loadCollectionTasks() {
-            try {
-                const res = await fetch('/api/collection/tasks');
-                const data = await res.json();
-                const taskList = document.getElementById('taskList');
-                
-                if (!data.tasks || data.tasks.length === 0) {
-                    taskList.innerHTML = '<div style="color: rgba(255,255,255,0.8); font-size: 13px;">暂无采集任务</div>';
-                    return;
-                }
-                
-                taskList.innerHTML = data.tasks.map(task => {
-                    const statusIcon = task.status === 'completed' ? '✅' : 
-                                      task.status === 'running' ? '🔄' : 
-                                      task.status === 'failed' ? '❌' : '⏳';
-                    
-                    return `
-                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <strong style="font-size: 14px; color: #000000;">${task.task_name}</strong>
-                                <span style="font-size: 12px;">${statusIcon}</span>
-                            </div>
-                            <div style="font-size: 12px; color: #000000; margin-bottom: 8px;">
-                                关键词：${task.keyword || 'N/A'}
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 11px; color: #000000;">
-                                    ${task.status === 'completed' ? `完成：${task.total_products}个` : ''}
-                                </span>
-                                ${task.status === 'running' ? `
-                                    <div style="flex: 1; margin: 0 12px;">
-                                        <div style="height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
-                                            <div style="height: 100%; background: #667eea; width: ${task.progress}%"></div>
-                                        </div>
-                                        <span style="font-size: 10px; color: #000000;">${task.progress}%</span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-            } catch (e) {
-                console.error('加载任务列表失败:', e);
             }
         }
 
@@ -723,6 +612,112 @@
                 btn.disabled = false;
                 btn.textContent = '🚀 开始采集';
                 alert('创建任务失败：' + e.message);
+            }
+        }
+
+        // 加载采集任务列表
+        async function loadCollectionTasks() {
+            try {
+                const res = await fetch('/api/collection/tasks');
+                const data = await res.json();
+                const taskList = document.getElementById('taskList');
+                
+                if (!data.tasks || data.tasks.length === 0) {
+                    taskList.innerHTML = '<div style="color: #000000; font-size: 13px;">暂无采集任务</div>';
+                    return;
+                }
+                
+                taskList.innerHTML = data.tasks.map(task => {
+                    const statusIcon = task.status === 'completed' ? '✅' : 
+                                      task.status === 'running' ? '🔄' : 
+                                      task.status === 'failed' ? '❌' : '⏳';
+                    
+                    return `
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong style="font-size: 14px; color: #000000;">${task.task_name}</strong>
+                                <span style="font-size: 12px;">${statusIcon}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #000000; margin-bottom: 8px;">
+                                关键词：${task.keyword || 'N/A'}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px; color: #000000;">
+                                    ${task.status === 'completed' ? `完成：${task.total_products}个` : ''}
+                                </span>
+                                ${task.status === 'running' ? `
+                                    <div style="flex: 1; margin: 0 12px;">
+                                        <div style="height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+                                            <div style="height: 100%; background: #667eea; width: ${task.progress}%"></div>
+                                        </div>
+                                        <span style="font-size: 10px; color: #000000;">${task.progress}%</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (e) {
+                console.error('加载任务列表失败:', e);
+            }
+        }
+
+        // 切换标签
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('#productsPanel .tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新全选框文字
+            const selectAllText = document.getElementById('selectAllText');
+            if (selectAllText) {
+                selectAllText.textContent = tab === 'unanalyzed' ? 
+                    '全选（用于批量分析）' : 
+                    '全选（重新分析）';
+            }
+            
+            selectedProducts.clear();
+            document.getElementById('selectAll').checked = false;
+            renderProducts();
+        }
+
+        // 选择商品
+        function toggleProduct(id, event) {
+            if (event.target.type === 'checkbox') {
+                event.stopPropagation();
+            }
+            if (selectedProducts.has(id)) {
+                selectedProducts.delete(id);
+            } else {
+                selectedProducts.add(id);
+            }
+            renderProducts();
+            updateAnalyzeHint();
+        }
+
+        // 全选
+        function toggleSelectAll() {
+            const checked = document.getElementById('selectAll').checked;
+            if (checked) {
+                unanalyzedProducts.forEach(p => selectedProducts.add(p.id));
+            } else {
+                selectedProducts.clear();
+            }
+            renderProducts();
+            updateAnalyzeHint();
+        }
+
+        // 更新提示
+        function updateAnalyzeHint() {
+            const count = selectedProducts.size;
+            const hint = document.getElementById('analyzeHint');
+            if (count > 0) {
+                hint.textContent = `已选择 ${count} 个商品进行分析`;
+            } else {
+                hint.textContent = '从未分析商品中选择，或留空自动选择（最多 10 个）';
             }
         }
 
@@ -808,91 +803,6 @@
                     `;
                 }
             }).join('');
-        }
-
-        // 切换标签
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // 更新全选框文字和显示状态
-            const selectAllContainer = document.getElementById('selectAllContainer');
-            const selectAllText = document.getElementById('selectAllText');
-            
-            if (currentMainTab === 'products') {
-                // 商品管理标签下显示全选框
-                if (selectAllContainer) selectAllContainer.style.display = 'flex';
-                if (selectAllText) {
-                    selectAllText.textContent = tab === 'unanalyzed' ? 
-                        '全选（用于批量分析）' : 
-                        '全选（重新分析）';
-                }
-            } else {
-                // 采集标签下隐藏全选框
-                if (selectAllContainer) selectAllContainer.style.display = 'none';
-            }
-            
-            selectedProducts.clear();
-            document.getElementById('selectAll').checked = false;
-            renderProducts();
-        }
-
-        // 选择商品
-        function toggleProduct(id, event) {
-            if (event.target.type === 'checkbox') {
-                event.stopPropagation();
-            }
-            if (selectedProducts.has(id)) {
-                selectedProducts.delete(id);
-            } else {
-                selectedProducts.add(id);
-            }
-            renderProducts();
-            updateAnalyzeHint();
-        }
-
-        // 全选
-        function toggleSelectAll() {
-            const checked = document.getElementById('selectAll').checked;
-            if (checked) {
-                unanalyzedProducts.forEach(p => selectedProducts.add(p.id));
-            } else {
-                selectedProducts.clear();
-            }
-            renderProducts();
-            updateAnalyzeHint();
-        }
-
-        // 更新提示
-        function updateAnalyzeHint() {
-            const count = selectedProducts.size;
-            const hint = document.getElementById('analyzeHint');
-            if (count > 0) {
-                // 检查选中的是已分析还是未分析商品
-                const analyzedSelected = Array.from(selectedProducts).some(id => 
-                    analyzedProducts.some(p => p.id === id)
-                );
-                const unanalyzedSelected = Array.from(selectedProducts).some(id => 
-                    unanalyzedProducts.some(p => p.id === id)
-                );
-                
-                if (analyzedSelected && unanalyzedSelected) {
-                    hint.textContent = `已选择 ${count} 个商品（混合）进行分析`;
-                } else if (analyzedSelected) {
-                    hint.textContent = `已选择 ${count} 个已分析商品重新分析`;
-                } else {
-                    hint.textContent = `已选择 ${count} 个未分析商品进行分析`;
-                }
-            } else {
-                hint.textContent = '选择商品分析，或留空自动分析未分析商品（最多 10 个）';
-            }
-        }
-
-        // 初始化全选框状态
-        const selectAllContainer = document.getElementById('selectAllContainer');
-        if (selectAllContainer && currentMainTab !== 'products') {
-            selectAllContainer.style.display = 'none';
         }
 
         // 开始分析
