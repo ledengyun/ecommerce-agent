@@ -430,9 +430,9 @@
                 
                 <!-- 商品采集面板 -->
                 <div id="collectPanel" style="display: block;">
-                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
                         <!-- 左侧：采集配置 -->
-                        <div>
+                        <div style="min-width: 0;">
                             <div class="panel-header" style="margin-bottom: 16px;">
                                 <div class="panel-title">选择采集平台</div>
                             </div>
@@ -491,9 +491,9 @@
                 
                 <!-- 商品列表面板 -->
                 <div id="productsPanel" style="display: none;">
-                    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
                         <!-- 左侧：商品列表 -->
-                        <div>
+                        <div style="min-width: 0;">
                             <div class="panel-header" style="margin-bottom: 16px;">
                                 <div class="panel-title">商品列表</div>
                             </div>
@@ -510,7 +510,7 @@
                                 </label>
                             </div>
                             
-                            <div class="product-list" id="productList">
+                            <div class="product-list" id="productList" style="overflow-x: auto;">
                                 <div class="empty-state">加载中...</div>
                             </div>
                         </div>
