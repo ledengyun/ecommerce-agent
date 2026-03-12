@@ -507,38 +507,36 @@
                         <div class="panel-title">📋 采集任务</div>
                     </div>
                     
-                    <div id="taskList" class="product-list" style="max-height: 400px; overflow-y: auto;">
+                    <div id="taskList" class="product-list" style="max-height: 300px; overflow-y: auto;">
                         <div class="empty-state">暂无采集任务</div>
                     </div>
                 </div>
                 
                 <!-- 商品管理下的操作 -->
                 <div id="productActions" style="display: none; margin-top: 24px; border-top: 2px solid #e5e7eb; padding-top: 24px;">
-                    <div class="action-panel">
-                        <div class="action-item">
-                            <h4>📊 利润分析</h4>
-                            <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
-                            <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
-                                开始分析
-                            </button>
-                            <div class="progress-bar" id="progressBar" style="display: none;">
-                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                            </div>
-                            <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                    <div class="action-item" style="margin-bottom: 16px;">
+                        <h4>📊 利润分析</h4>
+                        <p id="analyzeHint" style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
+                        <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn" style="width: 100%;">
+                            开始分析
+                        </button>
+                        <div class="progress-bar" id="progressBar" style="display: none; margin-top: 12px;">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                         </div>
-                        
-                        <div class="action-item">
-                            <h4>📋 最近分析结果</h4>
-                            <div id="latestResult" class="result-box" style="display: none;">
-                                <h4>✅ 分析完成</h4>
-                                <div class="result-stats">
-                                    <div>分析：<span id="resultTotal">0</span>个</div>
-                                    <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                    <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
-                                </div>
+                        <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                    </div>
+                    
+                    <div class="action-item">
+                        <h4>📋 最近分析结果</h4>
+                        <div id="latestResult" class="result-box" style="display: none; margin-top: 12px;">
+                            <h4 style="font-size: 14px; color: #166534; margin-bottom: 8px;">✅ 分析完成</h4>
+                            <div class="result-stats">
+                                <div>分析：<span id="resultTotal">0</span>个</div>
+                                <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
                             </div>
-                            <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
                         </div>
+                        <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
                     </div>
                 </div>
             </div>
@@ -560,15 +558,10 @@
             loadProducts();
             loadLatestResult();
             
-            // 初始化时隐藏全选框和右侧操作区（因为默认是采集标签）
+            // 初始化时隐藏全选框（因为默认是采集标签）
             const selectAllContainer = document.getElementById('selectAllContainer');
             if (selectAllContainer) {
                 selectAllContainer.style.display = 'none';
-            }
-            
-            const productActions = document.getElementById('productActions');
-            if (productActions) {
-                productActions.style.display = 'none';
             }
             
             setInterval(() => {
@@ -604,11 +597,11 @@
                 collectionTasks.style.display = 'block';
                 loadCollectionTasks();  // 加载任务列表
             } else {
-                // 商品管理：显示商品列表和操作，隐藏采集面板和任务
+                // 商品管理：显示商品列表、操作和任务列表
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
                 productActions.style.display = 'block';
-                collectionTasks.style.display = 'none';
+                collectionTasks.style.display = 'block';
                 loadProducts();  // 刷新商品列表
             }
         }
