@@ -442,8 +442,8 @@
                 </div>
             </div>
 
-            <!-- 右侧：面板 -->
-            <div class="panel" id="rightPanel">
+            <!-- 右侧：面板（默认隐藏，只在商品列表标签显示） -->
+            <div class="panel" id="rightPanel" style="display: none;">
                 <!-- 商品管理下的操作 -->
                 <div id="productActions">
                     <div class="panel-header">
@@ -504,6 +504,11 @@
             const productActions = document.getElementById('productActions');
             if (productActions) {
                 productActions.style.display = 'none';
+            }
+            
+            const rightPanel = document.getElementById('rightPanel');
+            if (rightPanel) {
+                rightPanel.style.display = 'none';
             }
             
             setInterval(() => {
