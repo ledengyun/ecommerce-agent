@@ -420,7 +420,7 @@
 
         <!-- 主内容区 -->
         <div class="main-content">
-            <!-- 左侧：功能面板 -->
+            <!-- 左侧：商品列表/采集结果 -->
             <div class="panel">
                 <!-- 主导航标签 -->
                 <div class="tabs" style="margin-bottom: 20px;">
@@ -428,51 +428,16 @@
                     <button class="tab" onclick="switchMainTab('products')">📦 商品管理</button>
                 </div>
                 
-                <!-- 数据采集面板 -->
+                <!-- 数据采集结果面板 -->
                 <div id="collectPanel" style="display: block;">
                     <div class="panel-header" style="margin-bottom: 16px;">
-                        <div class="panel-title">选择采集平台</div>
+                        <div class="panel-title">采集结果</div>
                     </div>
                     
-                    <div class="platform-grid">
-                        <div class="platform-card" onclick="togglePlatform('1688', this)">
-                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
-                            <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
-                        </div>
-                        
-                        <div class="platform-card" onclick="togglePlatform('temu', this)">
-                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
-                            <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
-                        </div>
-                        
-                        <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
-                            <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
-                            <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectKeyword">搜索关键词</label>
-                        <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectLimit">每个平台采集数量</label>
-                        <select id="collectLimit">
-                            <option value="10">10 个商品</option>
-                            <option value="20" selected>20 个商品</option>
-                            <option value="50">50 个商品</option>
-                            <option value="100">100 个商品</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
-                        🚀 开始采集
-                    </button>
-                    
-                    <div id="collectStatus" class="collection-status" style="display: none;">
-                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
-                        <div id="collectProgressItems"></div>
+                    <div id="collectResults" style="padding: 20px; text-align: center; color: #6b7280;">
+                        <p style="font-size: 48px; margin-bottom: 16px;">📊</p>
+                        <p>暂无采集数据</p>
+                        <p style="font-size: 13px; margin-top: 8px;">在右侧选择平台并开始采集</p>
                     </div>
                 </div>
                 
@@ -499,36 +464,78 @@
                 </div>
             </div>
 
-            <!-- 右侧：操作面板 -->
+            <!-- 右侧：采集操作面板 -->
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">操作</div>
-                </div>
-                
-                <div class="action-panel">
-                    <div class="action-item">
-                        <h4>📊 利润分析</h4>
-                        <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
-                        <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
-                            开始分析
-                        </button>
-                        <div class="progress-bar" id="progressBar" style="display: none;">
-                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
-                        <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                <!-- 采集操作 -->
+                <div id="collectActions">
+                    <div class="panel-header" style="margin-bottom: 16px;">
+                        <div class="panel-title">采集配置</div>
                     </div>
                     
-                    <div class="action-item">
-                        <h4>📋 最近分析结果</h4>
-                        <div id="latestResult" class="result-box" style="display: none;">
-                            <h4>✅ 分析完成</h4>
-                            <div class="result-stats">
-                                <div>分析：<span id="resultTotal">0</span>个</div>
-                                <div>推荐：<span id="resultRecommended">0</span>个</div>
-                                <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
-                            </div>
+                    <div class="platform-grid" style="grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div class="platform-card" onclick="togglePlatform('1688', this)">
+                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
+                            <p style="font-size: 12px;">人工辅助，稳定可靠</p>
                         </div>
-                        <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
+                        
+                        <div class="platform-card" onclick="togglePlatform('temu', this)">
+                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
+                            <p style="font-size: 12px;">需要 API 密钥</p>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectKeyword">搜索关键词</label>
+                        <input type="text" id="collectKeyword" placeholder="例如：home goods" value="home goods">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="collectLimit">采集数量</label>
+                        <select id="collectLimit">
+                            <option value="10">10 个</option>
+                            <option value="20" selected>20 个</option>
+                            <option value="50">50 个</option>
+                            <option value="100">100 个</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%; margin-bottom: 16px;">
+                        🚀 开始采集
+                    </button>
+                    
+                    <div id="collectStatus" class="collection-status" style="display: none;">
+                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
+                        <div id="collectProgressItems"></div>
+                    </div>
+                </div>
+                
+                <!-- 分析操作 -->
+                <div id="analysisActions" style="display: none; margin-top: 24px; border-top: 2px solid #e5e7eb; padding-top: 24px;">
+                    <div class="action-panel">
+                        <div class="action-item">
+                            <h4>📊 利润分析</h4>
+                            <p id="analyzeHint">从未分析商品中选择，或留空自动选择</p>
+                            <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">
+                                开始分析
+                            </button>
+                            <div class="progress-bar" id="progressBar" style="display: none;">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                            </div>
+                            <p id="progressText" style="font-size: 12px; color: #6b7280; margin-top: 8px;"></p>
+                        </div>
+                        
+                        <div class="action-item">
+                            <h4>📋 最近分析结果</h4>
+                            <div id="latestResult" class="result-box" style="display: none;">
+                                <h4>✅ 分析完成</h4>
+                                <div class="result-stats">
+                                    <div>分析：<span id="resultTotal">0</span>个</div>
+                                    <div>推荐：<span id="resultRecommended">0</span>个</div>
+                                    <div>平均利润：<span id="resultAvgMargin">0</span>%</div>
+                                </div>
+                            </div>
+                            <p id="noResultText" style="font-size: 13px; color: #6b7280;">暂无分析结果</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -575,13 +582,19 @@
             // 切换面板显示
             const collectPanel = document.getElementById('collectPanel');
             const productsPanel = document.getElementById('productsPanel');
+            const collectActions = document.getElementById('collectActions');
+            const analysisActions = document.getElementById('analysisActions');
             
             if (tab === 'collect') {
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
+                collectActions.style.display = 'block';
+                analysisActions.style.display = 'none';
             } else {
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
+                collectActions.style.display = 'none';
+                analysisActions.style.display = 'block';
                 loadProducts();  // 刷新商品列表
             }
         }
