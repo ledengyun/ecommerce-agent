@@ -430,49 +430,62 @@
                 
                 <!-- 商品采集面板 -->
                 <div id="collectPanel" style="display: block;">
-                    <div class="panel-header" style="margin-bottom: 16px;">
-                        <div class="panel-title">选择采集平台</div>
-                    </div>
-                    
-                    <div class="platform-grid">
-                        <div class="platform-card" onclick="togglePlatform('1688', this)">
-                            <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
-                            <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+                        <!-- 左侧：采集配置 -->
+                        <div>
+                            <div class="panel-header" style="margin-bottom: 16px;">
+                                <div class="panel-title">选择采集平台</div>
+                            </div>
+                            
+                            <div class="platform-grid">
+                                <div class="platform-card" onclick="togglePlatform('1688', this)">
+                                    <h3>🇨🇳 1688 <span class="platform-badge badge-free">免费</span></h3>
+                                    <p>人工辅助采集，稳定可靠。使用浏览器脚本自动提取商品数据。</p>
+                                </div>
+                                
+                                <div class="platform-card" onclick="togglePlatform('temu', this)">
+                                    <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
+                                    <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
+                                </div>
+                                
+                                <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
+                                    <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
+                                    <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="collectKeyword">搜索关键词</label>
+                                <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="collectLimit">每个平台采集数量</label>
+                                <select id="collectLimit">
+                                    <option value="10">10 个商品</option>
+                                    <option value="20" selected>20 个商品</option>
+                                    <option value="50">50 个商品</option>
+                                    <option value="100">100 个商品</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
+                                🚀 开始采集
+                            </button>
+                            
+                            <div id="collectStatus" class="collection-status" style="display: none;">
+                                <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
+                                <div id="collectProgressItems"></div>
+                            </div>
                         </div>
                         
-                        <div class="platform-card" onclick="togglePlatform('temu', this)">
-                            <h3>🌏 Temu <span class="platform-badge badge-api">API</span></h3>
-                            <p>第三方 API 采集，需要 API 密钥。支持自动搜索和提取。</p>
+                        <!-- 右侧：采集任务列表 -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 16px;">
+                            <div style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 12px;">📋 采集任务</div>
+                            <div id="taskList" style="max-height: 400px; overflow-y: auto;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 13px;">暂无采集任务</div>
+                            </div>
                         </div>
-                        
-                        <div class="platform-card" onclick="togglePlatform('amazon', this)" style="opacity: 0.6;">
-                            <h3>🇺🇸 Amazon <span class="platform-badge badge-api">API</span></h3>
-                            <p>第三方 API 采集（开发中）。支持 Amazon 商品搜索。</p>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectKeyword">搜索关键词</label>
-                        <input type="text" id="collectKeyword" placeholder="例如：home goods, kitchen gadgets, electronics" value="home goods">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="collectLimit">每个平台采集数量</label>
-                        <select id="collectLimit">
-                            <option value="10">10 个商品</option>
-                            <option value="20" selected>20 个商品</option>
-                            <option value="50">50 个商品</option>
-                            <option value="100">100 个商品</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="startCollection()" id="collectBtn" style="width: 100%;">
-                        🚀 开始采集
-                    </button>
-                    
-                    <div id="collectStatus" class="collection-status" style="display: none;">
-                        <h4 style="font-size: 14px; color: #374151; margin-bottom: 12px;">📈 采集进度</h4>
-                        <div id="collectProgressItems"></div>
                     </div>
                 </div>
                 
@@ -501,19 +514,8 @@
 
             <!-- 右侧：操作面板 -->
             <div class="panel">
-                <!-- 商品采集任务列表 -->
-                <div id="collectionTasks">
-                    <div class="panel-header">
-                        <div class="panel-title">📋 采集任务</div>
-                    </div>
-                    
-                    <div id="taskList" class="product-list" style="max-height: 300px; overflow-y: auto;">
-                        <div class="empty-state">暂无采集任务</div>
-                    </div>
-                </div>
-                
                 <!-- 商品管理下的操作 -->
-                <div id="productActions" style="display: none; margin-top: 24px; border-top: 2px solid #e5e7eb; padding-top: 24px;">
+                <div id="productActions">
                     <div class="action-item" style="margin-bottom: 16px;">
                         <h4>📊 利润分析</h4>
                         <p id="analyzeHint" style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">从未分析商品中选择，或留空自动选择</p>
@@ -587,21 +589,18 @@
             
             // 切换右侧操作区显示
             const productActions = document.getElementById('productActions');
-            const collectionTasks = document.getElementById('collectionTasks');
             
             if (tab === 'collect') {
-                // 商品采集：显示采集面板、任务列表，隐藏商品列表和利润分析
+                // 商品采集：显示采集面板，隐藏商品列表和利润分析
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
                 productActions.style.display = 'none';
-                collectionTasks.style.display = 'block';
                 loadCollectionTasks();  // 加载任务列表
             } else {
-                // 商品管理：显示商品列表和利润分析，隐藏采集面板和任务列表
+                // 商品管理：显示商品列表和利润分析，隐藏采集面板
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
                 productActions.style.display = 'block';
-                collectionTasks.style.display = 'none';
                 loadProducts();  // 刷新商品列表
                 loadLatestResult();  // 加载最近分析结果
             }
@@ -615,7 +614,7 @@
                 const taskList = document.getElementById('taskList');
                 
                 if (!data.tasks || data.tasks.length === 0) {
-                    taskList.innerHTML = '<div class="empty-state">暂无采集任务</div>';
+                    taskList.innerHTML = '<div style="color: rgba(255,255,255,0.8); font-size: 13px;">暂无采集任务</div>';
                     return;
                 }
                 
@@ -625,24 +624,24 @@
                                       task.status === 'failed' ? '❌' : '⏳';
                     
                     return `
-                        <div class="product-item" style="padding: 12px;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <strong style="font-size: 14px;">${task.task_name}</strong>
+                                <strong style="font-size: 14px; color: white;">${task.task_name}</strong>
                                 <span style="font-size: 12px;">${statusIcon}</span>
                             </div>
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">
                                 关键词：${task.keyword || 'N/A'}
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 11px; color: #9ca3af;">
+                                <span style="font-size: 11px; color: rgba(255,255,255,0.6);">
                                     ${task.status === 'completed' ? `完成：${task.total_products}个` : ''}
                                 </span>
                                 ${task.status === 'running' ? `
                                     <div style="flex: 1; margin: 0 12px;">
-                                        <div class="progress-bar" style="margin-top: 0;">
-                                            <div class="progress-fill" style="width: ${task.progress}%"></div>
+                                        <div style="height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
+                                            <div style="height: 100%; background: white; width: ${task.progress}%"></div>
                                         </div>
-                                        <span style="font-size: 10px; color: #9ca3af;">${task.progress}%</span>
+                                        <span style="font-size: 10px; color: rgba(255,255,255,0.6);">${task.progress}%</span>
                                     </div>
                                 ` : ''}
                             </div>
