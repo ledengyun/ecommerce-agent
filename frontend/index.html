@@ -577,8 +577,11 @@
             const productsPanel = document.getElementById('productsPanel');
             
             if (tab === 'collect') {
+                // 商品采集：只显示采集面板，隐藏商品列表
                 collectPanel.style.display = 'block';
+                productsPanel.style.display = 'none';
             } else {
+                // 商品管理：隐藏采集面板，显示商品列表
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
                 loadProducts();  // 刷新商品列表
