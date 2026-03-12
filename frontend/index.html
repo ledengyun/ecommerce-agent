@@ -442,10 +442,20 @@
                 </div>
             </div>
 
-            <!-- 右侧：面板（默认隐藏，只在商品列表标签显示） -->
-            <div class="panel" id="rightPanel" style="display: none;">
+            <!-- 右侧：面板（默认显示任务记录） -->
+            <div class="panel" id="rightPanel">
+                <!-- 采集任务 -->
+                <div id="collectionTasks">
+                    <div class="panel-header">
+                        <div class="panel-title">📋 采集任务</div>
+                    </div>
+                    <div id="taskList" style="max-height: 400px; overflow-y: auto;">
+                        <div style="color: #000000; font-size: 13px;">暂无采集任务</div>
+                    </div>
+                </div>
+                
                 <!-- 商品管理下的操作 -->
-                <div id="productActions">
+                <div id="productActions" style="display: none; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
                     <div class="panel-header">
                         <div class="panel-title">操作</div>
                     </div>
@@ -500,15 +510,10 @@
                 selectAllContainer.style.display = 'none';
             }
             
-            // 初始化时隐藏右侧操作区（因为默认是采集标签）
+            // 初始化时隐藏利润分析（因为默认是采集标签）
             const productActions = document.getElementById('productActions');
             if (productActions) {
                 productActions.style.display = 'none';
-            }
-            
-            const rightPanel = document.getElementById('rightPanel');
-            if (rightPanel) {
-                rightPanel.style.display = 'none';
             }
             
             setInterval(() => {
@@ -532,23 +537,23 @@
             const collectPanel = document.getElementById('collectPanel');
             const productsPanel = document.getElementById('productsPanel');
             
-            // 切换右侧操作区显示
+            // 切换右侧内容显示
+            const collectionTasks = document.getElementById('collectionTasks');
             const productActions = document.getElementById('productActions');
-            const rightPanel = document.getElementById('rightPanel');
             
             if (tab === 'collect') {
-                // 商品采集：显示采集面板，隐藏商品列表和右侧操作
+                // 商品采集：显示采集面板和任务列表
                 collectPanel.style.display = 'block';
                 productsPanel.style.display = 'none';
+                collectionTasks.style.display = 'block';
                 productActions.style.display = 'none';
-                rightPanel.style.display = 'none';
                 loadCollectionTasks();  // 加载任务列表
             } else {
-                // 商品管理：显示商品列表和右侧操作，隐藏采集面板
+                // 商品管理：显示商品列表和利润分析
                 collectPanel.style.display = 'none';
                 productsPanel.style.display = 'block';
+                collectionTasks.style.display = 'none';
                 productActions.style.display = 'block';
-                rightPanel.style.display = 'block';
                 loadProducts();  // 刷新商品列表
                 loadLatestResult();  // 加载最近分析结果
             }
