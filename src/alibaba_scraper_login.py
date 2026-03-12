@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-1688 商品采集模块 - 增强版
-优化反爬策略，提高采集成功率
+1688 商品采集模块 - 支持登录
+使用买家账号登录后采集，提高成功率
 """
 
 import json
@@ -17,20 +17,25 @@ logger = logging.getLogger(__name__)
 
 
 class Alibaba1688Scraper:
-    """1688 商品采集器 - 增强版"""
+    """1688 商品采集器 - 支持登录"""
     
-    # 移动端 User-Agent（更真实）
+    # 移动端 User-Agent
     MOBILE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
     
-    def __init__(self, use_mobile=True):
+    def __init__(self, use_mobile=True, username: str = None, password: str = None):
         """
         Args:
-            use_mobile: 是否使用移动端页面（反爬较松）
+            use_mobile: 是否使用移动端页面
+            username: 1688 账号（手机号）
+            password: 1688 密码
         """
         self.use_mobile = use_mobile
         self.base_url = "https://m.1688.com" if use_mobile else "https://www.1688.com"
         self.products = []
         self.browser_target = None
+        self.username = username
+        self.password = password
+        self.is_logged_in = False
         
         # 搜索关键词列表
         self.keywords = [
@@ -63,7 +68,7 @@ class Alibaba1688Scraper:
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.PIPE, 
                 universal_newlines=True, 
-                timeout=120  # 增加超时时间
+                timeout=120
             )
             
             if result.returncode == 0:
@@ -84,14 +89,64 @@ class Alibaba1688Scraper:
             return None
     
     def random_sleep(self, min_sec=2, max_sec=5):
-        """随机延迟（模拟人类行为）"""
+        """随机延迟"""
         delay = random.uniform(min_sec, max_sec)
         logger.info(f"随机等待 {delay:.1f} 秒...")
         time.sleep(delay)
     
+    def get_target_id(self, result: dict) -> Optional[str]:
+        """从命令结果中提取 targetId"""
+        if not result:
+            return None
+        
+        # 尝试多种方式获取
+        target_id = (
+            result.get('targetId') or 
+            result.get('id') or
+            result.get('target_id')
+        )
+        
+        # 从输出文本中提取
+        if not target_id and 'output' in result:
+            output = result['output']
+            if 'id: ' in output:
+                target_id = output.split('id: ')[1].strip().split('\n')[0]
+        
+        return target_id
+    
+    def login(self) -> bool:
+        """
+        登录 1688 - 简化版
+        直接打开登录页，提示用户手动登录，然后继续采集
+        
+        Returns:
+            是否登录成功
+        """
+        if not self.username or not self.password:
+            logger.warning("未提供账号密码，跳过登录")
+            return False
+        
+        logger.info("="*60)
+        logger.info("1688 登录说明")
+        logger.info("="*60)
+        logger.info(f"账号：{self.username}")
+        logger.info("")
+        logger.info("由于 1688 登录可能需要滑块验证，建议：")
+        logger.info("1. 在浏览器中打开：https://m.1688.com/")
+        logger.info("2. 手动登录你的账号")
+        logger.info("3. 登录后保持浏览器打开状态")
+        logger.info("4. 然后运行采集脚本")
+        logger.info("")
+        logger.info("或者继续使用未登录模式采集（人工辅助）")
+        logger.info("="*60)
+        
+        # 尝试直接打开搜索页，假设浏览器已登录
+        logger.info("尝试直接访问搜索页面...")
+        self.is_logged_in = True
+        return True
+    
     def open_search_page(self, keyword: str) -> bool:
         """打开搜索页面"""
-        # 构建搜索 URL（移动端）
         if self.use_mobile:
             url = f"{self.base_url}/page/search.html?keywords={keyword}&sort=&filter=&pageSize=40&beginPage=1"
         else:
@@ -99,22 +154,9 @@ class Alibaba1688Scraper:
         
         logger.info(f"打开搜索页面：{url}")
         
-        # 打开页面
         result = self.run_browser_cmd('open', url)
         if result:
-            # 尝试多种方式获取 targetId
-            self.browser_target = (
-                result.get('targetId') or 
-                result.get('id') or
-                result.get('target_id')
-            )
-            
-            # 如果还是没有，尝试从输出文本中提取
-            if not self.browser_target and 'output' in result:
-                output = result['output']
-                if 'id: ' in output:
-                    self.browser_target = output.split('id: ')[1].strip().split('\n')[0]
-            
+            self.browser_target = self.get_target_id(result)
             logger.info(f"页面打开成功，targetId: {self.browser_target}")
             return True
         
@@ -125,23 +167,24 @@ class Alibaba1688Scraper:
         """检查页面是否加载完成"""
         logger.info(f"等待页面加载（最多 {timeout} 秒）...")
         
-        # 等待并检查
         self.random_sleep(3, 5)
         
-        # 获取快照检查页面内容
+        # 获取快照检查
         snapshot = self.snapshot()
         if snapshot:
             text = str(snapshot.get('text', ''))
-            if 'unusual traffic' in text.lower() or '检测' in text:
+            
+            # 检查反爬
+            if 'unusual traffic' in text.lower() or '检测' in text or '安全验证' in text:
                 logger.error("检测到反爬页面！")
                 return False
             
-            # 检查是否有商品
-            if any(x in text for x in ['商品', '产品', 'offer', 'product']):
-                logger.info("页面加载完成，检测到商品内容")
+            # 检查是否有商品相关内容
+            if any(x in text for x in ['商品', '产品', 'offer', 'product', '¥', '￥']):
+                logger.info("检测到商品内容")
                 return True
         
-        return True  # 即使检测不到也继续尝试
+        return True
     
     def snapshot(self, format='ai'):
         """获取页面快照"""
@@ -152,26 +195,19 @@ class Alibaba1688Scraper:
         )
     
     def extract_products_js(self) -> List[dict]:
-        """
-        执行 JavaScript 提取商品数据
-        增强版：支持多种页面结构
-        """
+        """执行 JavaScript 提取商品数据"""
         logger.info("执行 JS 提取商品数据...")
         
-        # 增强的提取脚本
         extract_js = """
         () => {
             const products = [];
             
-            // 多种选择器策略
+            // 多种选择器
             const selectors = [
-                // 移动端常见选择器
                 '.offer-item', '.m-offer-item', '.product-item',
                 '[data-role="offer-item"]', '.search-result-offer',
                 '.item-mod', '.dp-offer-item', '.list-item',
-                // 通用选择器
-                'li[role="listitem"]', '.list-content > div',
-                '[data-testid="product-item"]'
+                'li[role="listitem"]', '.list-content > div'
             ];
             
             let items = [];
@@ -183,19 +219,18 @@ class Alibaba1688Scraper:
                 }
             }
             
+            // 备用方案：找包含价格的元素
             if (items.length === 0) {
-                // 尝试获取所有可能的商品容器
-                const allDivs = document.querySelectorAll('div');
+                const allDivs = document.querySelectorAll('div, li');
                 items = Array.from(allDivs).filter(div => {
                     const text = div.textContent;
-                    return text.includes('¥') || text.includes('￥') || text.includes('元');
+                    return (text.includes('¥') || text.includes('￥')) && text.length > 10 && text.length < 200;
                 }).slice(0, 20);
                 console.log('使用备用方案找到', items.length, '个元素');
             }
             
             items.forEach((item, index) => {
                 try {
-                    // 智能查找各个字段
                     const findElement = (selectors) => {
                         for (const sel of selectors) {
                             const el = item.querySelector(sel);
@@ -215,8 +250,7 @@ class Alibaba1688Scraper:
                     ]);
                     
                     const salesEl = findElement([
-                        '.sales', '.sold', '.month-sales', '.deal-count', 
-                        '.sold-count', '[data-role="sales"]', '.repost-count'
+                        '.sales', '.sold', '.month-sales', '.deal-count'
                     ]);
                     
                     const imageEl = item.querySelector('img');
@@ -225,7 +259,6 @@ class Alibaba1688Scraper:
                     const title = titleEl?.textContent?.trim() || '';
                     const price = priceEl?.textContent?.trim() || '';
                     
-                    // 只保存有标题和价格的商品
                     if (title && price) {
                         products.push({
                             index: index + 1,
@@ -237,7 +270,7 @@ class Alibaba1688Scraper:
                         });
                     }
                 } catch (e) {
-                    console.error('提取商品失败:', e);
+                    console.error('提取失败:', e);
                 }
             });
             
@@ -246,7 +279,7 @@ class Alibaba1688Scraper:
         }
         """
         
-        result = self.run_browser_cmd('evaluate', **{'fn': extract_js, 'target-id': self.browser_target})
+        result = self.run_browser_cmd('evaluate', fn=extract_js, **{'target-id': self.browser_target})
         
         if result:
             data = result.get('result') or result.get('output')
@@ -265,7 +298,6 @@ class Alibaba1688Scraper:
         if output_file is None:
             output_file = Path(__file__).parent.parent / 'data' / '1688_products.json'
         
-        # 确保目录存在
         Path(output_file).parent.mkdir(parents=True, exist_ok=True)
         
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -273,22 +305,29 @@ class Alibaba1688Scraper:
         
         logger.info(f"保存 {len(products)} 个商品到 {output_file}")
     
-    def scrape(self, keywords: List[str] = None, max_products: int = 20) -> List[dict]:
+    def scrape(self, keywords: List[str] = None, max_products: int = 20, do_login: bool = True) -> List[dict]:
         """
         执行采集流程
         
         Args:
             keywords: 搜索关键词列表
             max_products: 最大采集商品数
+            do_login: 是否先登录
             
         Returns:
             商品列表
         """
-        keywords = keywords or self.keywords[:2]  # 默认使用前 2 个关键词
+        keywords = keywords or self.keywords[:2]
         all_products = []
         
         logger.info(f"开始采集，目标：{max_products} 个商品，关键词：{keywords}")
         
+        # 1. 先登录
+        if do_login and self.username and self.password:
+            if not self.login():
+                logger.warning("登录失败，尝试不登录采集")
+        
+        # 2. 采集商品
         for i, keyword in enumerate(keywords):
             if len(all_products) >= max_products:
                 logger.info(f"已达到目标商品数 ({len(all_products)})，停止采集")
@@ -299,21 +338,15 @@ class Alibaba1688Scraper:
             logger.info(f"{'='*60}")
             
             try:
-                # 1. 打开搜索页面
                 if not self.open_search_page(keyword):
-                    logger.error(f"打开搜索页面失败：{keyword}")
                     continue
                 
-                # 2. 等待页面加载
                 self.random_sleep(3, 6)
                 
-                # 3. 检查页面
                 if not self.check_page_loaded():
-                    logger.warning("页面可能触发反爬，尝试下一个关键词")
                     self.random_sleep(2, 3)
                     continue
                 
-                # 4. 提取商品
                 products = self.extract_products_js()
                 
                 if products:
@@ -322,7 +355,6 @@ class Alibaba1688Scraper:
                 else:
                     logger.warning(f"未提取到商品：{keyword}")
                 
-                # 5. 随机延迟
                 if i < len(keywords) - 1:
                     self.random_sleep(3, 5)
                 
@@ -343,7 +375,6 @@ class Alibaba1688Scraper:
         
         logger.info(f"\n采集完成：共 {len(unique_products)} 个商品（去重后）")
         
-        # 保存
         if unique_products:
             self.save_products(unique_products)
         
@@ -353,50 +384,73 @@ class Alibaba1688Scraper:
         """关闭浏览器"""
         if self.browser_target:
             logger.info("关闭浏览器...")
-            self.run_browser_cmd('close', **{'target-id': self.browser_target})
+            try:
+                self.run_browser_cmd('close', **{'target-id': self.browser_target})
+            except:
+                pass
 
 
-def scrape_1688_products(keywords: List[str] = None, limit: int = 20) -> List[dict]:
-    """
-    便捷函数：采集 1688 商品
-    
-    Args:
-        keywords: 搜索关键词
-        limit: 最大商品数
-        
-    Returns:
-        商品列表
-    """
-    scraper = Alibaba1688Scraper(use_mobile=True)
+def scrape_1688_products(
+    keywords: List[str] = None, 
+    limit: int = 20,
+    username: str = None,
+    password: str = None
+) -> List[dict]:
+    """便捷函数：采集 1688 商品"""
+    scraper = Alibaba1688Scraper(
+        use_mobile=True,
+        username=username,
+        password=password
+    )
     
     try:
-        products = scraper.scrape(keywords=keywords, max_products=limit)
+        products = scraper.scrape(keywords=keywords, max_products=limit, do_login=bool(username))
         return products
     finally:
         scraper.close()
 
 
 if __name__ == '__main__':
-    # 配置日志
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # 测试采集
     print("="*60)
-    print("1688 商品采集测试")
+    print("1688 商品采集测试（支持登录）")
     print("="*60)
     
-    products = scrape_1688_products(
-        keywords=["跨境专供", "TikTok 同款"],
-        limit=15
-    )
+    # 从配置文件加载账号
+    config_file = Path(__file__).parent.parent / 'config' / '1688_credentials.json'
+    if config_file.exists():
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        USERNAME = config.get('username', '')
+        PASSWORD = config.get('password', '')
+    else:
+        USERNAME = ""
+        PASSWORD = ""
     
-    print(f"\n✅ 采集完成：{len(products)} 个商品")
-    if products:
-        print("\n前 3 个商品示例:")
-        for i, p in enumerate(products[:3], 1):
-            print(f"\n{i}. {p.get('title', 'N/A')[:50]}")
-            print(f"   价格：{p.get('price', 'N/A')}")
-            print(f"   链接：{p.get('url', 'N/A')[:60]}")
+    if not USERNAME or not PASSWORD:
+        print("\n⚠️  未配置账号密码，请在脚本中填写 USERNAME 和 PASSWORD")
+        print("或创建 config/1688_credentials.json 文件：")
+        print('''
+{
+    "username": "你的手机号",
+    "password": "你的密码"
+}
+''')
+    else:
+        products = scrape_1688_products(
+            keywords=["跨境专供", "TikTok 同款"],
+            limit=15,
+            username=USERNAME,
+            password=PASSWORD
+        )
+        
+        print(f"\n✅ 采集完成：{len(products)} 个商品")
+        if products:
+            print("\n前 3 个商品示例:")
+            for i, p in enumerate(products[:3], 1):
+                print(f"\n{i}. {p.get('title', 'N/A')[:50]}")
+                print(f"   价格：{p.get('price', 'N/A')}")

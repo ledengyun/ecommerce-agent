@@ -25,14 +25,21 @@ wheels/
 
 # 敏感信息
 config/credentials.yaml
+config/1688_credentials.json
 *.key
 *.pem
 .env
 
-# 数据文件
+# 数据文件（示例文件可以保留）
 data/*.json
+!data/sample_*.json
 output/
 logs/
+
+# 备份文件
+*_old.py
+*_old.html
+*.bak
 
 # IDE
 .vscode/

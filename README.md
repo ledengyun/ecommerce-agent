@@ -48,6 +48,15 @@ cd /home/admin/.openclaw/workspace/ecommerce-agent
 # 3. 在控制台点击"开始分析"
 ```
 
+### 数据库配置
+
+MySQL 数据库已配置完成：
+- **数据库**: `ecommerce_agent`
+- **用户**: `root` / `EcommerceAgent2026!`
+- **数据**: 15 个测试商品已导入
+
+详见 `DATABASE_GUIDE.md`
+
 ### 方式 2: 命令行
 
 ```bash
