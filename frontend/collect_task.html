@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建采集任务 - 电商选品 Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .content { padding: 40px; }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        
+        .task-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .task-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .task-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .task-field label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .task-field strong {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending { background: #ffc107; color: #000; }
+        .status-running { background: #17a2b8; color: #fff; }
+        .status-completed { background: #28a745; color: #fff; }
+        .status-failed { background: #dc3545; color: #fff; }
+        
+        .task-list {
+            margin-top: 30px;
+        }
+        .task-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .task-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        .task-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .task-item-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 创建采集任务</h1>
+            <p>异步采集多平台商品数据</p>
+        </div>
+        
+        <div class="content">
+            <div id="alertBox"></div>
+            
+            <!-- 创建任务表单 -->
+            <form id="createForm">
+                <div class="form-group">
+                    <label for="keyword">🔍 搜索关键词</label>
+                    <input type="text" id="keyword" name="keyword" 
+                           placeholder="例如：home goods, kitchen gadgets" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>📦 采集平台</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="platforms" value="amazon" checked>
+                            <span>Amazon</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="platforms" value="1688" disabled>
+                            <span>1688 (开发中)</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="platforms" value="temu" disabled>
+                            <span>Temu (开发中)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="limit">📊 每个平台采集数量</label>
+                    <input type="number" id="limit" name="limit" 
+                           min="1" max="100" value="20">
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="autoImport" name="autoImport" checked>
+                        <span>自动导入数据库</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 创建采集任务
+                </button>
+            </form>
+            
+            <!-- 当前任务 -->
+            <div id="currentTask" class="task-card" style="display: none;">
+                <h3>📋 当前任务</h3>
+                <div class="task-info">
+                    <div class="task-field">
+                        <label>任务 ID</label>
+                        <strong id="taskId"></strong>
+                    </div>
+                    <div class="task-field">
+                        <label>关键词</label>
+                        <strong id="taskKeyword"></strong>
+                    </div>
+                    <div class="task-field">
+                        <label>平台</label>
+                        <strong id="taskPlatforms"></strong>
+                    </div>
+                    <div class="task-field">
+                        <label>状态</label>
+                        <span id="taskStatus" class="status-badge"></span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                </div>
+                
+                <p id="taskMessage" style="color: #666; font-size: 14px;"></p>
+            </div>
+            
+            <!-- 任务列表 -->
+            <div class="task-list">
+                <h3>📝 最近任务</h3>
+                <div id="taskList"></div>
+                <button onclick="loadTasks()" class="btn" style="margin-top: 15px; background: #6c757d;">
+                    🔄 刷新任务列表
+                </button>
+            </div>
+            
+            <a href="/" class="back-link">← 返回首页</a>
+        </div>
+    </div>
+    
+    <script>
+        let currentTaskId = null;
+        let pollInterval = null;
+        
+        // 创建任务
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const keyword = document.getElementById('keyword').value.trim();
+            const limit = parseInt(document.getElementById('limit').value);
+            const autoImport = document.getElementById('autoImport').checked;
+            
+            // 获取选中的平台
+            const platforms = Array.from(
+                document.querySelectorAll('input[name="platforms"]:checked')
+            ).map(cb => cb.value);
+            
+            if (!keyword) {
+                showAlert('请输入搜索关键词', 'error');
+                return;
+            }
+            
+            if (platforms.length === 0) {
+                showAlert('请至少选择一个平台', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '创建中...';
+            
+            try {
+                const response = await fetch('/api/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword, platforms, limit, auto_import: autoImport })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('创建失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`✅ 任务已创建：${data.task_name}`, 'success');
+                    currentTaskId = data.task_id;
+                    showCurrentTask(data);
+                    startPolling();
+                    loadTasks();
+                } else {
+                    showAlert(`❌ ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                showAlert(`❌ 创建失败：${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 创建采集任务';
+            }
+        });
+        
+        // 显示当前任务
+        function showCurrentTask(task) {
+            document.getElementById('currentTask').style.display = 'block';
+            document.getElementById('taskId').textContent = task.task_id.substring(0, 8) + '...';
+            document.getElementById('taskKeyword').textContent = task.keyword;
+            document.getElementById('taskPlatforms').textContent = task.platforms.join(', ');
+            updateTaskStatus(task);
+        }
+        
+        // 更新任务状态
+        function updateTaskStatus(task) {
+            const statusEl = document.getElementById('taskStatus');
+            const progressFill = document.getElementById('progressFill');
+            const taskMessage = document.getElementById('taskMessage');
+            
+            statusEl.textContent = task.status;
+            statusEl.className = `status-badge status-${task.status}`;
+            
+            progressFill.style.width = `${task.progress}%`;
+            progressFill.textContent = `${task.progress}%`;
+            
+            taskMessage.textContent = task.message;
+        }
+        
+        // 轮询任务状态
+        function startPolling() {
+            if (pollInterval) clearInterval(pollInterval);
+            
+            pollInterval = setInterval(async () => {
+                if (!currentTaskId) return;
+                
+                try {
+                    const response = await fetch(`/api/collect/tasks/${currentTaskId}`);
+                    const task = await response.json();
+                    
+                    showCurrentTask(task);
+                    
+                    if (task.status === 'completed' || task.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showAlert(
+                            task.status === 'completed' 
+                                ? `✅ 采集完成！共 ${task.total_products} 个商品`
+                                : `❌ 任务失败：${task.error_message}`,
+                            task.status === 'completed' ? 'success' : 'error'
+                        );
+                    }
+                } catch (error) {
+                    console.error('轮询失败:', error);
+                }
+            }, 2000); // 每 2 秒轮询一次
+        }
+        
+        // 加载任务列表
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/collect/tasks?limit=10');
+                const data = await response.json();
+                
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+                
+                if (data.tasks.length === 0) {
+                    taskList.innerHTML = '<p style="color: #666; text-align: center;">暂无任务</p>';
+                    return;
+                }
+                
+                data.tasks.forEach(task => {
+                    const item = document.createElement('div');
+                    item.className = 'task-item';
+                    item.onclick = () => {
+                        currentTaskId = task.task_id;
+                        showCurrentTask(task);
+                        if (task.status === 'running') {
+                            startPolling();
+                        }
+                    };
+                    
+                    item.innerHTML = `
+                        <div class="task-item-header">
+                            <span class="task-item-title">${task.task_name}</span>
+                            <span class="status-badge status-${task.status}">${task.status}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #666;">
+                            <span>🔍 ${task.keyword}</span> | 
+                            <span>📦 ${task.platforms.join(', ')}</span> | 
+                            <span>📊 ${task.total_products} 个商品</span>
+                        </div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            ${new Date(task.created_at).toLocaleString('zh-CN')}
+                        </div>
+                    `;
+                    
+                    taskList.appendChild(item);
+                });
+            } catch (error) {
+                console.error('加载任务列表失败:', error);
+            }
+        }
+        
+        // 显示提示
+        function showAlert(message, type = 'success') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+        
+        // 页面加载时加载任务列表
+        loadTasks();
+    </script>
+</body>
+</html>

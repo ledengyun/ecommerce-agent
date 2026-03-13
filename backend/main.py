@@ -1,102 +1,97 @@
 #!/usr/bin/env python3
 """
-电商选品上架 Agent - FastAPI 后端服务 (MySQL 版) - 支持分析状态
+电商选品 Agent - FastAPI 后端服务（重构版）
+
+分层架构:
+- config: 配置层
+- api: API 接口层
+- service: 业务逻辑层
+- dao: 数据访问层
+- utils: 工具层
 """
 
 import logging
 from pathlib import Path
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-import json
 
-import pymysql
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/backend.log'),
-        logging.StreamHandler()
-    ]
+# 导入配置
+from config import (
+    PROJECT_ROOT,
+    DATA_DIR,
+    LOGS_DIR,
+    SERVER_CONFIG,
+    CORS_CONFIG,
+    LOGGING_CONFIG,
+    FEATURE_FLAGS
 )
-logger = logging.getLogger(__name__)
 
-# 初始化 FastAPI 应用
+# 导入 API 路由
+from api import amazon_router, collection_router
+
+# 导入工具
+from utils import get_db
+
+# ==================== 配置日志 ====================
+
+def setup_logging():
+    """配置日志"""
+    logging.basicConfig(
+        level=getattr(logging, LOGGING_CONFIG['level']),
+        format=LOGGING_CONFIG['format'],
+        handlers=[
+            logging.FileHandler(LOGGING_CONFIG['file']),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    return logger
+
+logger = setup_logging()
+
+# ==================== 初始化 FastAPI 应用 ====================
+
 app = FastAPI(
     title="电商选品 Agent API",
-    description="电商选品上架系统的后端 API",
-    version="1.1.0"
+    description="电商选品上架系统的后端 API（重构版）",
+    version="2.0.0"
 )
 
 # 配置 CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_CONFIG['allow_origins'],
+    allow_credentials=CORS_CONFIG['allow_credentials'],
+    allow_methods=CORS_CONFIG['allow_methods'],
+    allow_headers=CORS_CONFIG['allow_headers']
 )
 
-# 项目根目录
-PROJECT_ROOT = Path(__file__).parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
-OUTPUT_DIR = PROJECT_ROOT / "output"
-LOGS_DIR = PROJECT_ROOT / "logs"
+# ==================== 挂载静态文件 ====================
+
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
-# 确保目录存在
-for dir_path in [DATA_DIR, OUTPUT_DIR, LOGS_DIR]:
-    dir_path.mkdir(exist_ok=True)
-
-# 挂载静态文件
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+    logger.info(f"静态文件目录：{FRONTEND_DIR}")
 
-# 数据库配置
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'EcommerceAgent2026!',
-    'database': 'ecommerce_agent',
-    'charset': 'utf8mb4',
-    'cursorclass': pymysql.cursors.DictCursor
-}
+# ==================== 注册 API 路由 ====================
 
-def get_db_connection():
-    """获取数据库连接"""
-    return pymysql.connect(
-        host=DB_CONFIG['host'],
-        user=DB_CONFIG['user'],
-        password=DB_CONFIG['password'],
-        database=DB_CONFIG['database'],
-        charset=DB_CONFIG['charset'],
-        cursorclass=pymysql.cursors.DictCursor
-    )
+# 采集任务（统一入口）
+app.include_router(collection_router)
 
-# ==================== 数据模型 ====================
+# Amazon 采集（直接调用）
+app.include_router(amazon_router)
 
-class AnalysisRequest(BaseModel):
-    product_ids: Optional[List[int]] = None  # 用户选择的商品 ID，为空则自动选择
-    min_profit_margin: Optional[float] = 0.3
-    keyword: Optional[str] = None  # 采集关键词
-    platforms: Optional[List[str]] = None  # 采集平台
-    limit: Optional[int] = 20  # 采集数量
-
-class AnalysisResult(BaseModel):
-    task_id: str
-    status: str
-    progress: int
-    message: str
-    result: Optional[Dict[str, Any]] = None
-
-# 任务状态存储
-task_status: Dict[str, Any] = {}
+# 其他路由将在后续添加
+# app.include_router(temu_router)
+# app.include_router(1688_router)
+# app.include_router(product_router)
+# app.include_router(analysis_router)
 
 # ==================== API 端点 ====================
 
@@ -106,17 +101,26 @@ async def root():
     index_file = FRONTEND_DIR / "index.html"
     if index_file.exists():
         return index_file.read_text(encoding='utf-8')
-    return {"message": "前端页面未找到"}
+    
+    amazon_page = FRONTEND_DIR / "amazon_collect.html"
+    if amazon_page.exists():
+        return amazon_page.read_text(encoding='utf-8')
+    
+    return {
+        "message": "电商选品 Agent API",
+        "version": "2.0.0",
+        "docs": "/docs",
+        "status": "/api/status"
+    }
+
 
 @app.get("/api/status")
-async def get_status():
+async def get_system_status():
     """获取系统状态"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        cursor.close()
-        conn.close()
+        # 检查数据库连接
+        db = get_db()
+        db.execute("SELECT 1")
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {str(e)}"
@@ -124,529 +128,83 @@ async def get_status():
     return {
         "status": "online",
         "timestamp": datetime.now().isoformat(),
-        "database": db_status
+        "database": db_status,
+        "features": FEATURE_FLAGS
     }
 
-@app.get("/api/stats")
-async def get_stats():
-    """获取统计数据"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT 
-                COUNT(*) as total_products,
-                SUM(CASE WHEN analyzed = TRUE THEN 1 ELSE 0 END) as analyzed_count,
-                SUM(CASE WHEN analyzed = FALSE THEN 1 ELSE 0 END) as unanalyzed_count,
-                SUM(CASE WHEN recommend = TRUE THEN 1 ELSE 0 END) as recommended_count,
-                AVG(CASE WHEN analyzed = TRUE THEN profit_margin ELSE NULL END) as avg_profit_margin
-            FROM products
-        """)
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        return {
-            "total_products": result['total_products'] or 0,
-            "analyzed_count": result['analyzed_count'] or 0,
-            "unanalyzed_count": result['unanalyzed_count'] or 0,
-            "recommended_count": result['recommended_count'] or 0,
-            "avg_profit_margin": float(result['avg_profit_margin']) * 100 if result and result['avg_profit_margin'] else 0
-        }
-    except Exception as e:
-        logger.error(f"获取统计失败：{e}")
-        return {
-            "total_products": 0,
-            "analyzed_count": 0,
-            "unanalyzed_count": 0,
-            "recommended_count": 0,
-            "avg_profit_margin": 0
-        }
 
-@app.get("/api/products/unanalyzed")
-async def get_unanalyzed_products(limit: int = 50):
-    """获取未分析的商品列表"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, title, supplier_price, sales_volume, image_url, source_url
-            FROM products 
-            WHERE analyzed = FALSE OR analyzed IS NULL
-            ORDER BY id DESC
-            LIMIT %s
-        """, (limit,))
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        
-        products = []
-        for row in results:
-            products.append({
-                "id": row["id"],
-                "title": row["title"],
-                "supplier_price": f"¥{row['supplier_price']:.2f}" if row["supplier_price"] else (row.get('price') or '-'),
-                "sales_volume": row["sales_volume"] or "未知",
-                "image_url": row["image_url"],
-                "source_url": row["source_url"]
-            })
-        
-        return products
-    except Exception as e:
-        logger.error(f"获取未分析商品失败：{e}")
-        return []
-
-@app.get("/api/products/analyzed")
-async def get_analyzed_products(limit: int = 50):
-    """获取已分析的商品列表"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, title, supplier_price, retail_price, profit_margin, 
-                   image_url, source_url, recommend, last_analyzed_at
-            FROM products 
-            WHERE analyzed = TRUE
-            ORDER BY profit_margin DESC
-            LIMIT %s
-        """, (limit,))
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        
-        products = []
-        for row in results:
-            products.append({
-                "id": row["id"],
-                "title": row["title"],
-                "supplier_price": f"¥{row['supplier_price']:.2f}" if row["supplier_price"] else '-',
-                "retail_price": f"${row['retail_price']:.2f}" if row["retail_price"] else '-',
-                "profit_margin": float(row["profit_margin"]) * 100 if row["profit_margin"] else 0,
-                "recommend": bool(row["recommend"]),
-                "image_url": row["image_url"],
-                "source_url": row["source_url"],
-                "last_analyzed_at": row["last_analyzed_at"].isoformat() if row["last_analyzed_at"] else None
-            })
-        
-        return products
-    except Exception as e:
-        logger.error(f"获取已分析商品失败：{e}")
-        return []
-
-@app.post("/api/analyze", response_model=AnalysisResult)
-async def start_analysis(request: AnalysisRequest, background_tasks: BackgroundTasks):
-    """开始利润分析任务"""
-    import uuid
-    task_id = str(uuid.uuid4())
-    
-    # 确定要分析的商品
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    if request.product_ids and len(request.product_ids) > 0:
-        # 用户选择了商品（可以是已分析或未分析的）
-        product_ids = request.product_ids
-        cursor.execute("""
-            SELECT id, supplier_price, sales_volume, analyzed 
-            FROM products 
-            WHERE id IN %s
-        """, (tuple(product_ids),))
-        products_to_analyze = cursor.fetchall()
-        
-        # 检查是否有已分析的商品
-        reanalyze_count = sum(1 for p in products_to_analyze if p['analyzed'])
-        if reanalyze_count > 0:
-            logger.info(f"重新分析 {reanalyze_count} 个已分析商品")
-    else:
-        # 自动选择未分析的商品（最多 10 个）
-        cursor.execute("""
-            SELECT id, supplier_price, sales_volume, analyzed
-            FROM products 
-            WHERE analyzed = FALSE OR analyzed IS NULL
-            LIMIT 10
-        """)
-        products_to_analyze = cursor.fetchall()
-    
-    cursor.close()
-    conn.close()
-    
-    if not products_to_analyze:
-        return AnalysisResult(
-            task_id=task_id,
-            status="completed",
-            progress=100,
-            message="没有可分析的商品",
-            result={"total": 0, "analyzed": 0}
-        )
-    
-    # 创建任务
-    task_status[task_id] = {
-        "task_id": task_id,
-        "status": "pending",
-        "progress": 0,
-        "message": "任务已创建，等待执行",
-        "product_ids": [p["id"] for p in products_to_analyze],
-        "result": None
-    }
-    
-    background_tasks.add_task(run_analysis_task, task_id, request)
-    
-    return AnalysisResult(
-        task_id=task_id,
-        status="pending",
-        progress=0,
-        message="任务已创建，等待执行",
-        result=None
-    )
-
-def run_analysis_task(task_id: str, request: AnalysisRequest):
-    """后台执行利润分析任务"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        task_status[task_id]["status"] = "running"
-        task_status[task_id]["progress"] = 20
-        task_status[task_id]["message"] = "正在分析商品..."
-        
-        product_ids = task_status[task_id]["product_ids"]
-        
-        # 分析每个商品
-        for i, product_id in enumerate(product_ids):
-            # 计算利润
-            cursor.execute("""
-                SELECT supplier_price, sales_volume FROM products WHERE id = %s
-            """, (product_id,))
-            product = cursor.fetchone()
-            
-            if product and product["supplier_price"]:
-                supplier_price = float(product["supplier_price"])
-                suggested_retail = supplier_price * 3.5
-                estimated_cost = supplier_price + 5
-                profit = suggested_retail - estimated_cost
-                profit_margin = profit / suggested_retail if suggested_retail > 0 else 0
-                recommend = profit_margin >= (request.min_profit_margin or 0.3)
-                
-                # 更新商品
-                cursor.execute("""
-                    UPDATE products 
-                    SET analyzed = TRUE,
-                        retail_price = %s,
-                        profit_margin = %s,
-                        recommend = %s,
-                        last_analyzed_at = NOW()
-                    WHERE id = %s
-                """, (suggested_retail, profit_margin, recommend, product_id))
-            
-            # 更新进度
-            task_status[task_id]["progress"] = 20 + int((i + 1) / len(product_ids) * 70)
-            task_status[task_id]["message"] = f"已分析 {i+1}/{len(product_ids)} 个商品"
-        
-        conn.commit()
-        
-        # 获取统计
-        cursor.execute("""
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN recommend = TRUE THEN 1 ELSE 0 END) as recommended,
-                AVG(profit_margin) as avg_margin
-            FROM products 
-            WHERE analyzed = TRUE
-        """)
-        stats = cursor.fetchone()
-        
-        task_status[task_id]["progress"] = 100
-        task_status[task_id]["status"] = "completed"
-        task_status[task_id]["message"] = "分析完成"
-        task_status[task_id]["result"] = {
-            "total": len(product_ids),
-            "analyzed": len(product_ids),
-            "recommended": stats['recommended'] if stats else 0,
-            "avg_margin": float(stats['avg_margin']) * 100 if stats and stats['avg_margin'] else 0
-        }
-        
-        logger.info(f"分析完成：{len(product_ids)}个商品")
-        
-        cursor.close()
-        conn.close()
-        
-    except Exception as e:
-        logger.error(f"分析任务失败：{e}")
-        task_status[task_id]["status"] = "failed"
-        task_status[task_id]["message"] = f"任务失败：{str(e)}"
-
-@app.get("/api/tasks/{task_id}")
-async def get_task_status(task_id: str):
-    """获取任务状态"""
-    if task_id not in task_status:
-        raise HTTPException(status_code=404, detail="任务不存在")
-    
-    task = task_status[task_id]
+@app.get("/api/health")
+async def health_check():
+    """健康检查"""
     return {
-        "task_id": task["task_id"],
-        "status": task["status"],
-        "progress": task["progress"],
-        "message": task["message"],
-        "result": task["result"]
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat()
     }
 
-# 采集任务存储
-collection_tasks: Dict[str, Dict] = {}
 
-@app.post("/api/collect")
-async def create_collection_task(request: AnalysisRequest):
-    """创建采集任务（异步）"""
-    import uuid
-    import random
-    import string
+# ==================== 错误处理 ====================
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """全局异常处理"""
+    logger.error(f"全局异常：{exc}", exc_info=True)
     
-    try:
-        # 生成随机任务名称（10 位字符串）
-        task_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        task_id = str(uuid.uuid4())
-        
-        keyword = request.keyword or 'home goods'
-        platforms = request.platforms or ['1688', 'temu']
-        limit = request.limit or 20
-        
-        # 保存到数据库
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO collection_tasks 
-            (task_id, task_name, keyword, platforms, status, progress)
-            VALUES (%s, %s, %s, %s, 'pending', 0)
-        """, (task_id, task_name, keyword, json.dumps(platforms)))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        # 创建任务记录
-        collection_tasks[task_id] = {
-            'task_id': task_id,
-            'task_name': task_name,
-            'keyword': keyword,
-            'platforms': platforms,
-            'limit': limit,
-            'status': 'pending',
-            'progress': 0,
-            'total_products': 0
-        }
-        
-        # 后台执行采集
-        background_tasks.add_task(run_collection_task, task_id)
-        
-        return {
-            'success': True,
-            'task_id': task_id,
-            'task_name': task_name,
-            'message': '采集任务已创建'
-        }
-        
-    except Exception as e:
-        logger.error(f"创建任务失败：{e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "success": False,
+        "message": f"服务器错误：{str(exc)}",
+        "path": request.url.path
+    }
 
-def run_collection_task(task_id: str):
-    """后台执行采集任务"""
-    try:
-        import sys
-        from pathlib import Path
-        
-        # 更新状态为运行中
-        collection_tasks[task_id]['status'] = 'running'
-        collection_tasks[task_id]['progress'] = 10
-        
-        # 更新数据库
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE collection_tasks SET status='running', progress=10
-            WHERE task_id = %s
-        """, (task_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        # 添加项目根目录到 Python 路径
-        project_root = Path(__file__).parent.parent
-        if str(project_root) not in sys.path:
-            sys.path.insert(0, str(project_root))
-        
-        from src.data_collector import DataCollector
-        
-        task = collection_tasks[task_id]
-        keyword = task['keyword']
-        platforms = task['platforms']
-        limit = task['limit']
-        
-        # 执行采集
-        collection_tasks[task_id]['progress'] = 30
-        
-        collector = DataCollector()
-        results = collector.collect(
-            keyword=keyword,
-            platforms=platforms,
-            limit_per_platform=limit,
-            output_file=f'data/collected_{task_id}.json'
-        )
-        
-        # 计算总数
-        total = sum(len(p) for p in results.values())
-        
-        # 更新状态
-        collection_tasks[task_id]['progress'] = 100
-        collection_tasks[task_id]['status'] = 'completed'
-        collection_tasks[task_id]['total_products'] = total
-        
-        # 更新数据库
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE collection_tasks 
-            SET status='completed', progress=100, total_products=%s, completed_at=NOW()
-            WHERE task_id = %s
-        """, (total, task_id))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        logger.info(f"采集任务完成：{task_id}, 总计 {total} 个商品")
-        
-    except Exception as e:
-        logger.error(f"采集任务失败：{task_id}, 错误：{e}")
-        collection_tasks[task_id]['status'] = 'failed'
-        collection_tasks[task_id]['error_message'] = str(e)
-        
-        # 更新数据库
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE collection_tasks 
-            SET status='failed', error_message=%s
-            WHERE task_id = %s
-        """, (str(e), task_id))
-        conn.commit()
-        cursor.close()
-        conn.close()
 
-@app.get("/api/collection/tasks")
-async def get_collection_tasks():
-    """获取采集任务列表"""
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT task_id, task_name, keyword, status, progress, 
-                   total_products, created_at, completed_at
-            FROM collection_tasks
-            ORDER BY created_at DESC
-            LIMIT 20
-        """)
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        
-        tasks = []
-        for row in results:
-            tasks.append({
-                'task_id': row['task_id'],
-                'task_name': row['task_name'],
-                'keyword': row['keyword'],
-                'status': row['status'],
-                'progress': row['progress'],
-                'total_products': row['total_products'],
-                'created_at': row['created_at'].isoformat() if row['created_at'] else None,
-                'completed_at': row['completed_at'].isoformat() if row['completed_at'] else None
-            })
-        
-        return {'tasks': tasks}
-        
-    except Exception as e:
-        logger.error(f"获取任务列表失败：{e}")
-        return {'tasks': []}
+# ==================== 生命周期事件 ====================
 
-@app.get("/api/collect")
-async def collect_products_sync(request: AnalysisRequest):
-    """采集多平台商品数据（同步，保留兼容）"""
+@app.on_event("startup")
+async def startup_event():
+    """应用启动事件"""
+    logger.info("="*60)
+    logger.info("  电商选品 Agent API 启动")
+    logger.info("="*60)
+    logger.info(f"服务地址：http://{SERVER_CONFIG['host']}:{SERVER_CONFIG['port']}")
+    logger.info(f"环境：{'开发' if SERVER_CONFIG['debug'] else '生产'}")
+    logger.info(f"数据目录：{DATA_DIR}")
+    logger.info(f"日志目录：{LOGS_DIR}")
+    
+    # 验证配置
     try:
-        import sys
-        from pathlib import Path
-        
-        # 添加项目根目录到 Python 路径
-        project_root = Path(__file__).parent.parent
-        if str(project_root) not in sys.path:
-            sys.path.insert(0, str(project_root))
-        
-        from src.data_collector import DataCollector
-        
-        keyword = request.keyword or 'home goods'
-        platforms = ['1688', 'temu']  # 默认采集这两个平台
-        limit = 20
-        
-        collector = DataCollector()
-        results = collector.collect(
-            keyword=keyword,
-            platforms=platforms,
-            limit_per_platform=limit,
-            output_file='data/collected_products.json'
-        )
-        
-        return {
-            'success': True,
-            'keyword': keyword,
-            'platforms': platforms,
-            'results': results
-        }
-        
+        from config import validate_config
+        validate_config()
+        logger.info("✅ 配置验证通过")
     except Exception as e:
-        logger.error(f"采集失败：{e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"❌ 配置验证失败：{e}")
+    
+    logger.info("="*60)
 
-@app.get("/api/analysis/latest")
-async def get_latest_analysis():
-    """获取最近一次分析结果"""
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """应用关闭事件"""
+    logger.info("正在关闭服务...")
+    
+    # 关闭数据库连接
     try:
-        # 从 task_status 中获取最近完成的任务
-        completed_tasks = [
-            t for t in task_status.values() 
-            if t["status"] == "completed" and t["result"]
-        ]
-        
-        if not completed_tasks:
-            return {
-                "has_result": False,
-                "message": "暂无分析结果"
-            }
-        
-        # 获取最近的一个
-        latest = completed_tasks[-1]
-        
-        return {
-            "has_result": True,
-            "task_id": latest["task_id"],
-            "total_analyzed": latest["result"].get("total", 0),
-            "recommended_count": latest["result"].get("recommended", 0),
-            "avg_profit_margin": latest["result"].get("avg_margin", 0),
-            "message": f"分析了 {latest['result'].get('total', 0)} 个商品，推荐 {latest['result'].get('recommended', 0)} 个"
-        }
-        
+        from utils import db_manager
+        db_manager.close()
+        logger.info("数据库连接已关闭")
     except Exception as e:
-        logger.error(f"获取最近分析结果失败：{e}")
-        return {
-            "has_result": False,
-            "message": "获取失败"
-        }
+        logger.error(f"关闭数据库失败：{e}")
+    
+    logger.info("服务已关闭")
+
 
 # ==================== 启动服务 ====================
 
 if __name__ == "__main__":
     import uvicorn
+    
     uvicorn.run(
         app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
+        host=SERVER_CONFIG['host'],
+        port=SERVER_CONFIG['port'],
+        reload=SERVER_CONFIG['reload'],
+        log_level=LOGGING_CONFIG['level'].lower()
     )

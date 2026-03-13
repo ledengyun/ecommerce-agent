@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temu 数据采集 - API 配置</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 40px; }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        .step h3 { color: #333; margin-bottom: 10px; }
+        .step a { color: #667eea; text-decoration: none; }
+        .step a:hover { text-decoration: underline; }
+        .api-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: border-color 0.3s;
+        }
+        .api-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-block { display: block; width: 100%; text-align: center; }
+        .alternatives {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .alternatives h4 { color: #856404; margin-bottom: 10px; }
+        .alternatives ul { margin-left: 20px; color: #856404; }
+        .alternatives li { margin-bottom: 5px; }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ Temu 数据采集配置</h1>
+            <p>使用第三方 API 自动采集 Temu 商品数据</p>
+        </div>
+        
+        <div class="content">
+            <!-- 步骤 1 -->
+            <div class="step">
+                <h3>📝 第 1 步：获取 API 密钥</h3>
+                <p>访问 <a href="https://www.rainforestapi.com" target="_blank">Rainforest API 官网</a> 注册账号</p>
+                <div class="info-box">
+                    <strong>💡 免费试用：</strong> 新账号自动获得 100 次免费请求，无需绑定信用卡
+                </div>
+            </div>
+            
+            <!-- 步骤 2 -->
+            <div class="step">
+                <h3>🔑 第 2 步：复制 API 密钥</h3>
+                <p>登录后进入 Dashboard → API Keys → 复制您的密钥</p>
+                <div class="code">密钥格式示例：a1b2c3d4e5f6g7h8i9j0</div>
+            </div>
+            
+            <!-- 步骤 3 -->
+            <div class="step">
+                <h3>⚙️ 第 3 步：配置密钥</h3>
+                <p>在终端中运行以下命令：</p>
+                <div class="code">export RAINFOREST_API_KEY="your_api_key_here"</div>
+                <p style="margin-top: 10px;">或永久保存：</p>
+                <div class="code">echo 'export RAINFOREST_API_KEY="your_key"' >> ~/.bashrc</div>
+            </div>
+            
+            <!-- 步骤 4 -->
+            <div class="step">
+                <h3>🧪 第 4 步：测试采集</h3>
+                <p>运行测试脚本验证配置：</p>
+                <div class="code">cd /home/admin/.openclaw/workspace/ecommerce-agent<br>python3 src/temu_scraper_api.py</div>
+            </div>
+            
+            <!-- 备选方案 -->
+            <div class="alternatives">
+                <h4>⚠️ 如果 Rainforest 不支持 Temu</h4>
+                <p>考虑以下替代方案：</p>
+                <ul>
+                    <li><strong>ScraperAPI</strong> - <a href="https://www.scraperapi.com" target="_blank">scraperapi.com</a> (5000 次免费)</li>
+                    <li><strong>Bright Data</strong> - <a href="https://brightdata.com" target="_blank">brightdata.com</a> (有 Temu 专用爬虫)</li>
+                    <li><strong>Oxylabs</strong> - <a href="https://oxylabs.io" target="_blank">oxylabs.io</a> (支持 Temu)</li>
+                </ul>
+            </div>
+            
+            <!-- 快速命令 -->
+            <div style="margin-top: 30px;">
+                <h3>🚀 快速命令</h3>
+                <div class="code">
+# 1. 配置 API 密钥<br>
+export RAINFOREST_API_KEY="your_key"<br><br>
+# 2. 测试采集<br>
+python3 src/temu_scraper_api.py<br><br>
+# 3. 多平台采集<br>
+python3 -c "from src.data_collector import DataCollector; c = DataCollector(); c.collect('home goods', ['1688', 'temu'], 20)"<br><br>
+# 4. 启动自动导入<br>
+python3 database/auto_import.py --mode watch
+                </div>
+            </div>
+            
+            <!-- 文档链接 -->
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="#" class="btn" onclick="alert('查看：/home/admin/.openclaw/workspace/ecommerce-agent/docs/RAINFOREST_API_SETUP.md')">📖 查看完整文档</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 自动检测是否已配置
+        fetch('/api/config/check')
+            .then(r => r.json())
+            .then(data => {
+                if (data.rainforest_configured) {
+                    document.querySelector('.header').innerHTML = `
+                        <h1>✅ API 已配置</h1>
+                        <p>检测到已配置的 Rainforest API 密钥</p>
+                    `;
+                }
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>

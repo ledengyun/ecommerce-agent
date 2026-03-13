@@ -1,0 +1,22 @@
+[Unit]
+Description=E-commerce Auto Import Service
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/.openclaw/workspace/ecommerce-agent
+Environment="DB_HOST=localhost"
+Environment="DB_USER=root"
+Environment="DB_PASSWORD=EcommerceAgent2026!"
+Environment="DB_NAME=ecommerce_agent"
+ExecStart=/usr/bin/python3 -u database/auto_import.py --mode watch
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ecommerce-auto-import
+
+[Install]
+WantedBy=multi-user.target

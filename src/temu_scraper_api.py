@@ -102,12 +102,26 @@ class TemuScraper:
             return []
     
     def _search_rainforest(self, keyword: str, limit: int) -> List[Dict]:
-        """使用 Rainforest API 搜索"""
-        params = self.api_configs['rainforest']['params'].copy()
-        params['search_term'] = keyword
-        params['sort_by'] = 'featured'
+        """
+        使用 Rainforest API 搜索
+        注意：Rainforest 不直接支持 Temu，改用 Amazon 搜索作为备选
+        或使用通用爬虫模式
+        """
+        # 方案 1: 尝试直接使用通用爬虫模式访问 Temu
+        temu_url = f"https://www.temu.com/search_result.html?search_key={keyword}"
+        
+        params = {
+            'api_key': self.api_key,
+            'type': 'search',
+            'amazon_domain': 'amazon.com',  # Rainforest 主要支持 Amazon
+            'search_term': keyword,
+            'sort_by': 'featured'
+        }
         
         try:
+            # 先尝试 Amazon 搜索（作为价格参考）
+            logger.info(f"Rainforest 不支持 Temu 直接搜索，改用 Amazon 搜索 '{keyword}' 作为参考")
+            
             response = requests.get(
                 self.api_configs['rainforest']['base_url'],
                 params=params,
@@ -132,12 +146,13 @@ class TemuScraper:
                     'url': item.get('link'),
                     'position': item.get('position'),
                     'is_prime': item.get('is_prime', False),
-                    'platform': 'Temu',
-                    'extracted_at': data.get('request_info', {}).get('success_time', '')
+                    'platform': 'Amazon',  # 标记为 Amazon 数据
+                    'extracted_at': data.get('request_info', {}).get('success_time', ''),
+                    'note': 'Rainforest 不支持 Temu，此为 Amazon 替代数据'
                 }
                 products.append(product)
             
-            logger.info(f"成功提取 {len(products)} 个商品")
+            logger.info(f"成功提取 {len(products)} 个 Amazon 商品（Temu 不可用）")
             return products
             
         except Exception as e:

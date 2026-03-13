@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亚马逊采集 - 电商选品 Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .content { padding: 40px; }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 状态显示 */
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .status-box h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .status-item:last-child { border-bottom: none; }
+        
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.active { display: block; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 结果列表 */
+        .results {
+            margin-top: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        .product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .product-info h4 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .product-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        .product-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        
+        /* 成功/错误提示 */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* 回首页链接 */
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 亚马逊商品采集</h1>
+            <p>使用 Rainforest API 采集亚马逊商品数据</p>
+        </div>
+        
+        <div class="content">
+            <!-- 提示信息 -->
+            <div id="alertBox"></div>
+            
+            <!-- 采集表单 -->
+            <form id="collectForm">
+                <div class="form-group">
+                    <label for="keyword">🔍 搜索关键词</label>
+                    <input 
+                        type="text" 
+                        id="keyword" 
+                        name="keyword" 
+                        placeholder="例如：home goods, kitchen gadgets"
+                        required
+                    >
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="limit">📦 采集数量</label>
+                        <input 
+                            type="number" 
+                            id="limit" 
+                            name="limit" 
+                            min="1" 
+                            max="100" 
+                            value="20"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="domain">🌐 亚马逊站点</label>
+                        <select id="domain" name="domain">
+                            <option value="amazon.com">美国站 (amazon.com)</option>
+                            <option value="amazon.co.uk">英国站 (amazon.co.uk)</option>
+                            <option value="amazon.de">德国站 (amazon.de)</option>
+                            <option value="amazon.co.jp">日本站 (amazon.co.jp)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="autoImport">💾 自动导入</label>
+                        <select id="autoImport" name="autoImport">
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 开始采集
+                </button>
+            </form>
+            
+            <!-- 加载动画 -->
+            <div class="loading" id="loadingBox">
+                <div class="spinner"></div>
+                <p id="loadingText">正在采集亚马逊商品...</p>
+            </div>
+            
+            <!-- 采集结果 -->
+            <div class="status-box" id="statusBox" style="display: none;">
+                <h3>📊 采集结果</h3>
+                <div class="status-item">
+                    <span>关键词:</span>
+                    <strong id="resultKeyword"></strong>
+                </div>
+                <div class="status-item">
+                    <span>采集数量:</span>
+                    <strong id="resultCount"></strong>
+                </div>
+                <div class="status-item">
+                    <span>导入数据库:</span>
+                    <strong id="resultImport"></strong>
+                </div>
+            </div>
+            
+            <!-- 商品列表 -->
+            <div class="results" id="resultsBox"></div>
+            
+            <!-- 回首页 -->
+            <a href="/" class="back-link">← 返回首页</a>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('collectForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingBox = document.getElementById('loadingBox');
+        const loadingText = document.getElementById('loadingText');
+        const statusBox = document.getElementById('statusBox');
+        const resultsBox = document.getElementById('resultsBox');
+        const alertBox = document.getElementById('alertBox');
+        
+        // 显示提示
+        function showAlert(message, type = 'success') {
+            alertBox.innerHTML = `
+                <div class="alert alert-${type}">${message}</div>
+            `;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+        
+        // 提交表单
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 获取表单数据
+            const keyword = document.getElementById('keyword').value.trim();
+            const limit = parseInt(document.getElementById('limit').value);
+            const domain = document.getElementById('domain').value;
+            const autoImport = document.getElementById('autoImport').value === 'true';
+            
+            // 验证
+            if (!keyword) {
+                showAlert('请输入搜索关键词', 'error');
+                return;
+            }
+            
+            // 禁用按钮
+            submitBtn.disabled = true;
+            loadingBox.classList.add('active');
+            statusBox.style.display = 'none';
+            resultsBox.innerHTML = '';
+            
+            try {
+                // 调用 API
+                loadingText.textContent = `正在采集 "${keyword}"...`;
+                
+                const response = await fetch('/api/amazon/collect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        keyword: keyword,
+                        limit: limit,
+                        auto_import: autoImport
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || '采集失败');
+                }
+                
+                const data = await response.json();
+                
+                // 显示结果
+                loadingBox.classList.remove('active');
+                
+                if (data.success) {
+                    showAlert(`✅ ${data.message}`, 'success');
+                    
+                    // 更新状态框
+                    document.getElementById('resultKeyword').textContent = keyword;
+                    document.getElementById('resultCount').textContent = `${data.total_products} 个商品`;
+                    document.getElementById('resultImport').textContent = autoImport ? '✅ 已导入' : '❌ 未导入';
+                    statusBox.style.display = 'block';
+                    
+                    // 显示商品列表
+                    if (data.products && data.products.length > 0) {
+                        displayProducts(data.products);
+                    }
+                } else {
+                    showAlert(`❌ ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                loadingBox.classList.remove('active');
+                showAlert(`❌ 采集失败：${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // 显示商品列表
+        function displayProducts(products) {
+            resultsBox.innerHTML = '<h3 style="margin: 20px 0 15px;">📦 商品列表</h3>';
+            
+            products.forEach((product, index) => {
+                const price = product.price ? `$${product.price.toFixed(2)}` : '价格未知';
+                const rating = product.rating ? `⭐ ${product.rating}` : '';
+                const reviews = product.ratings_total ? `(${product.ratings_total} 条评价)` : '';
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image || 'https://via.placeholder.com/100'}" 
+                         alt="${product.title}" 
+                         class="product-image"
+                         onerror="this.src='https://via.placeholder.com/100'">
+                    <div class="product-info">
+                        <h4>${index + 1}. ${product.title.substring(0, 80)}${product.title.length > 80 ? '...' : ''}</h4>
+                        <div class="product-meta">
+                            <span>${rating} ${reviews}</span>
+                            <span>${product.is_prime ? '✓ Prime' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="product-price">${price}</div>
+                `;
+                
+                resultsBox.appendChild(card);
+            });
+        }
+        
+        // 页面加载时检查状态
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/amazon/status');
+                const status = await response.json();
+                
+                if (!status.api_configured) {
+                    showAlert('⚠️ API 密钥未配置，请联系管理员', 'error');
+                }
+            } catch (error) {
+                console.error('状态检查失败:', error);
+            }
+        }
+        
+        checkStatus();
+    </script>
+</body>
+</html>
